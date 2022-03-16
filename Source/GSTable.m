@@ -745,6 +745,9 @@
 //
 -(void) encodeWithCoder: (NSCoder*)aCoder
 {
+
+#ifndef __EMSCRIPTEN__
+  // TODO: FIXME emscripten
   int i;
   
   [super encodeWithCoder: aCoder];
@@ -767,18 +770,22 @@
 	{
 	  [aCoder encodeBool: _expandColumn[i] forKey: 
 		    [NSString stringWithFormat: @"GSExpandColumn%d",i]];
-	  [aCoder encodeFloat: _columnDimension[i] forKey:
+    float f_cast = _columnDimension[i];
+	  [aCoder encodeFloat: f_cast forKey:
 		    [NSString stringWithFormat: @"GSColumnDimension%d",i]];	  
-	  [aCoder encodeFloat: _minColumnDimension[i] forKey:
+    f_cast = _minColumnDimension[i];
+	  [aCoder encodeFloat: f_cast forKey:
 		    [NSString stringWithFormat: @"GSMinColumnDimension%d",i]];
 	}
       for (i = 0; i < _numberOfRows; i++)
 	{
 	  [aCoder encodeBool: _expandRow[i] forKey: 
 		    [NSString stringWithFormat: @"GSExpandRow%d",i]];
-	  [aCoder encodeFloat: _rowDimension[i] forKey: 
+    float f_cast = _rowDimension[i];
+	  [aCoder encodeFloat: f_cast forKey: 
 		    [NSString stringWithFormat: @"GSRowDimension%d",i]];
-	  [aCoder encodeFloat: _minRowDimension[i] forKey: 
+    f_cast = _minColumnDimension[i];
+	  [aCoder encodeFloat: f_cast forKey: 
 		    [NSString stringWithFormat: @"GSMinRowDimension%d",i]];
 	}
     }
@@ -809,6 +816,7 @@
 	  [aCoder encodeValueOfObjCType: @encode(float) at: &_minRowDimension[i]];
 	}
     }
+#endif
 }
 
 -(id) initWithCoder: (NSCoder*)aDecoder
