@@ -18,6 +18,7 @@ Tests/gui/*/GNUmakefile
 Tools/speech/GSSpeechServer.app
 Tools/speech_recognizer/GSSpeechRecognitionServer.app
 *~
+.DS_Store
 
 # Created by https://www.gitignore.io/api/xcode
 # Edit at https://www.gitignore.io/?templates=xcode
