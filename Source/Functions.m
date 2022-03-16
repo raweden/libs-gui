@@ -62,43 +62,43 @@ char **NSArgv = NULL;
 int
 NSApplicationMain(int argc, const char **argv)
 {
-  NSDictionary		*infoDict;
-  NSString              *mainModelFile;
-  NSString		*className;
-  Class			appClass;
+  NSDictionary *infoDict;
+  NSString *mainModelFile;
+  NSString *className;
+  Class appClass;
   CREATE_AUTORELEASE_POOL(pool);
 #if defined(LIB_FOUNDATION_LIBRARY) || defined(GS_PASS_ARGUMENTS)
-  extern char		**environ;
+  extern char **environ;
 
-  [NSProcessInfo initializeWithArguments: (char**)argv
-				   count: argc
-			     environment: environ];
+  [NSProcessInfo initializeWithArguments: (char**)argv count: argc environment: environ];
 #endif
 
   infoDict = [[NSBundle mainBundle] infoDictionary];
+  fprintf(stderr, "getting infoDict.NSPrincipalClass\n");
   className = [infoDict objectForKey: @"NSPrincipalClass"];
   appClass = NSClassFromString(className);
 
   if (appClass == 0)
     {
-      NSLog(@"Bad application class '%@' specified", className);
+      //NSLog(@"Bad application class '%@' specified", className);
+      fprintf(stderr, "Bad application class '%s' specified\n", [className cString]);
       appClass = [NSApplication class];
     }
   [appClass sharedApplication];
 
+  fprintf(stderr, "getting infoDict.NSMainNibFile\n");
   mainModelFile = [infoDict objectForKey: @"NSMainNibFile"];
-  if (mainModelFile != nil && [mainModelFile isEqual: @""] == NO)
-    {
-      if ([NSBundle loadNibNamed: mainModelFile owner: NSApp] == NO)
-	{
-	  NSLog (_(@"Cannot load the main model file '%@'"), mainModelFile);
-	}
-    }
-  else
-    {
+  if (mainModelFile != nil && [mainModelFile isEqual: @""] == NO) {
+    fprintf(stderr, "calling [NSBundle loadNibNamed: mainModelFile owner: NSApp]\n");
+    if ([NSBundle loadNibNamed: mainModelFile owner: NSApp] == NO) {
+	    NSLog (_(@"Cannot load the main model file '%@'"), mainModelFile);
+	  }
+  } else {
+      fprintf(stderr, "getting infoDict.NSMainStoryboardFile\n");
       mainModelFile = [infoDict objectForKey: @"NSMainStoryboardFile"];
-      if (mainModelFile != nil && [mainModelFile isEqual: @""] == NO)
-        {
+      if (mainModelFile != nil && [mainModelFile isEqual: @""] == NO) {
+
+        fprintf(stderr, "creating storyboard\n");
           NSStoryboard *storyboard = [NSStoryboard storyboardWithName: mainModelFile
                                                                bundle: [NSBundle mainBundle]];
           if (storyboard == nil)
@@ -114,13 +114,17 @@ NSApplicationMain(int argc, const char **argv)
         }
     }
 
+  fprintf(stderr, "creating RECREATE_AUTORELEASE_POOL\n");
   RECREATE_AUTORELEASE_POOL(pool);
 
+  fprintf(stderr, "[NSApp run]\n");
   [NSApp run];
 
+#ifndef __EMSCRIPTEN__
   DESTROY(NSApp);
 
   [pool drain];
+#endif
 
   return 0;
 }

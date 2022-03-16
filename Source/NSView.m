@@ -2609,9 +2609,7 @@ static void autoresize(CGFloat oldContainerSize,
   
   if (NSIsEmptyRect(aRect) == NO)
     {
-      /*
-       * Now we draw this view.
-       */
+      // Now we draw this view.
       [self _lockFocusInContext: context inRect: aRect];
       [self drawRect: aRect];
       [self unlockFocusNeedsFlush: flush];

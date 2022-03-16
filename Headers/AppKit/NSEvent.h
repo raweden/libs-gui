@@ -176,7 +176,7 @@ enum {
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
   NSDeviceIndependentModifierFlagsMask = 0xffff0000U,
 #endif
-  NSAlphaShiftKeyMask = 1 << 16,
+  NSAlphaShiftKeyMask = 1 << 16, // Caps Lock
   NSShiftKeyMask = 2 << 16,
   NSControlKeyMask = 4 << 16,
   NSAlternateKeyMask = 8 << 16,

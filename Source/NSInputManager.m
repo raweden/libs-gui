@@ -481,6 +481,8 @@ static NSInputManager *currentInputManager = nil;
 - (void) handleKeyboardEvents: (NSArray *)eventArray
                        client: (id)client
 {
+
+  fprintf(stderr, "entering at %s\n", __PRETTY_FUNCTION__);
   NSEvent *theEvent;
   NSEnumerator *eventEnum = [eventArray objectEnumerator];
 
@@ -509,6 +511,8 @@ static NSInputManager *currentInputManager = nil;
         {
           character = [unmodifiedCharacters characterAtIndex: 0];
         }
+
+        fprintf(stderr, "character: %d\n", character);
 
       if (!_interpretNextKeyStrokeLiterally)
         {

@@ -485,10 +485,7 @@ setKeyEquivalent(NSButton *button)
     not selectable?  Any text visible on the  screen should always
     be selectable for a copy-and-paste. Hence, setSelectable: YES.
   */
-  selectedAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
-				 [NSColor controlLightHighlightColor], 
-				 NSBackgroundColorAttributeName,
-				 nil];
+  selectedAttrs = @{@"NSBackgroundColor": [NSColor controlLightHighlightColor]};
   [(NSTextView *)fieldEditor setSelectedTextAttributes: selectedAttrs]; 
   [messageField setSelectable: YES];
   [messageField setBezeled: NO];
@@ -810,7 +807,9 @@ setKeyEquivalent(NSButton *button)
 	  [self sizePanelToFit];
 	}
       [NSApp runModalForWindow: self];
+#ifndef __EMSCRIPTEN__
       [self orderOut: self];
+#endif
     }
   return result;
 }

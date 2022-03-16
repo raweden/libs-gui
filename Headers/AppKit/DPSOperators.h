@@ -874,15 +874,20 @@ DPSsetstrokeadjust(GSCTXT *ctxt, int b)
     (ctxt, @selector(DPSsetstrokeadjust:), b);
 }
 
-
 /* ----------------------------------------------------------------------- */
 /* Matrix operations */
 /* ----------------------------------------------------------------------- */
 static inline void
 DPSconcat(GSCTXT *ctxt, const CGFloat* m)
 {
+#ifndef __EMSCRIPTEN__
   (ctxt->methods->DPSconcat_)
     (ctxt, @selector(DPSconcat:), m);
+#else
+  void (*fp)(NSGraphicsContext*, SEL, const CGFloat*);
+  fp = ctxt->methods->DPSconcat_;
+  fp(ctxt, @selector(DPSconcat:), m);
+#endif
 }
 
 static inline void

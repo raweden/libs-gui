@@ -1656,11 +1656,13 @@ static NSColor *dtxtCol;
 {
 }
 
+
 - (BOOL) trackMouse: (NSEvent*)theEvent
              inRect: (NSRect)cellFrame
              ofView: (NSView*)controlView
        untilMouseUp: (BOOL)flag
 {
+#ifndef __EMSCRIPTEN__
   NSApplication *theApp = [NSApplication sharedApplication];
   NSUInteger event_mask = NSLeftMouseDownMask | NSLeftMouseUpMask
     | NSMouseMovedMask | NSLeftMouseDraggedMask | NSOtherMouseDraggedMask
@@ -1820,6 +1822,9 @@ static NSColor *dtxtCol;
       NSDebugLLog(@"NSCell", @"mouse did not go up in cell\n");
       return NO;
     }
+#else
+    fprintf(stderr, "did enter at %s\n", __PRETTY_FUNCTION__);
+#endif // #ifndef __EMSCRIPTEN__
 }
 
 - (NSUInteger) hitTestForEvent: (NSEvent*)event
@@ -2955,11 +2960,19 @@ static NSColor *dtxtCol;
   [paragraphStyle setBaseWritingDirection: [self baseWritingDirection]];
   [paragraphStyle setAlignment: [self alignment]];
 
+#ifndef __EMSCRIPTEN__
   attr = [[NSDictionary alloc] initWithObjectsAndKeys:
                                _font, NSFontAttributeName,
                                color, NSForegroundColorAttributeName,
                                paragraphStyle, NSParagraphStyleAttributeName,
                                nil];
+#else
+  attr = @{
+    @"NSFont": _font,
+    @"NSColor": color,
+    @"NSParagraphStyle": paragraphStyle,    
+  };
+#endif
   RELEASE (paragraphStyle);
   return attr;
 }

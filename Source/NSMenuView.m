@@ -243,9 +243,17 @@ static float menuBarHeight = 0.0;
                                             object: _attachedMenu];
     }
 
-  /* Clean the pointer to us stored into the _itemCells.  */
+  // Clean the pointer to us stored into the _itemCells.
+#ifndef __EMSCRIPTEN__
   [_itemCells makeObjectsPerformSelector: @selector(setMenuView:)
               withObject: nil];
+#else
+  unsigned int i;
+  unsigned int count = [_itemCells count];
+  for (i = 0; i < count; i++) {
+    [[_itemCells objectAtIndex: i] setMenuView: nil];
+  }
+#endif
 
   RELEASE(_itemCells);
   RELEASE(_font);

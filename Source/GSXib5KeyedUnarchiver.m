@@ -191,65 +191,62 @@ static NSArray      *XmlBoolDefaultYes  = nil;
         {
           // These define XML tags (i.e. <objects ...) that should be allocated as the
           // associated class...
-          XmlTagToObjectClassMap =
-            [NSDictionary dictionaryWithObjectsAndKeys:
-                            @"NSMutableArray", @"objects",
-                            @"NSMutableArray", @"items",
-                            @"NSMutableArray", @"tabViewItems",
-                            @"NSMutableArray", @"connections",
-                            @"NSMutableArray", @"subviews",
-                            @"NSMutableArray", @"tableColumns",
-                            @"NSMutableArray", @"cells",
-                            @"NSMutableArray", @"column",
-                            @"NSMutableArray", @"tabStops",
-                            @"NSMutableArray", @"userDefinedRuntimeAttributes",
-                            @"NSMutableArray", @"resources",
-                            @"NSMutableArray", @"segments",
-                            @"NSMutableArray", @"objectValues",
-                            @"NSMutableArray", @"prototypeCellViews",
-                            @"NSMutableArray", @"allowedToolbarItems",
-                            @"NSMutableArray", @"defaultToolbarItems",
-                            @"NSMutableArray", @"rowTemplates",
-                            @"NSMutableArray", @"constraints",
-                            @"NSMutableArray", @"rows",
-                            @"NSMutableArray", @"columns",
-                            @"NSMutableArray", @"gridCells",
-                            @"NSSegmentItem", @"segment",
-                            @"NSCell", @"customCell",
-                            @"NSCustomObject5", @"customObject",
-                            @"IBOutletConnection", @"outlet",
-                            @"IBActionConnection", @"action",
-                            @"NSNibBindingConnector", @"binding",
-                            @"NSWindowTemplate", @"window",
-                            @"NSView", @"tableCellView",
-                            @"IBUserDefinedRuntimeAttribute5", @"userDefinedRuntimeAttribute",
-                            @"NSURL", @"url",
-                            @"NSLayoutConstraint", @"constraint",
-                            @"NSPageController", @"pagecontroller", // inconsistent capitalization
-                            @"NSStackViewContainer", @"beginningViews",
-                            @"NSStackViewContainer", @"middleViews",
-                            @"NSStackViewContainer", @"endViews",
-                            nil];
+          XmlTagToObjectClassMap = @{
+            @"objects": @"NSMutableArray",
+            @"items": @"NSMutableArray",
+            @"tabViewItems": @"NSMutableArray",
+            @"connections": @"NSMutableArray",
+            @"subviews": @"NSMutableArray",
+            @"tableColumns": @"NSMutableArray",
+            @"cells": @"NSMutableArray",
+            @"column": @"NSMutableArray",
+            @"tabStops": @"NSMutableArray",
+            @"userDefinedRuntimeAttributes": @"NSMutableArray",
+            @"resources": @"NSMutableArray",
+            @"segments": @"NSMutableArray",
+            @"objectValues": @"NSMutableArray",
+            @"prototypeCellViews": @"NSMutableArray",
+            @"allowedToolbarItems": @"NSMutableArray",
+            @"defaultToolbarItems": @"NSMutableArray",
+            @"rowTemplates": @"NSMutableArray",
+            @"constraints": @"NSMutableArray",
+            @"rows": @"NSMutableArray",
+            @"columns": @"NSMutableArray",
+            @"gridCells": @"NSMutableArray",
+            @"segment": @"NSSegmentItem",
+            @"customCell": @"NSCell",
+            @"customObject": @"NSCustomObject5",
+            @"outlet": @"IBOutletConnection",
+            @"action": @"IBActionConnection",
+            @"binding": @"NSNibBindingConnector",
+            @"window": @"NSWindowTemplate",
+            @"tableCellView": @"NSView",
+            @"userDefinedRuntimeAttribute": @"IBUserDefinedRuntimeAttribute5",
+            @"url": @"NSURL",
+            @"constraint": @"NSLayoutConstraint",
+            @"pagecontroller": @"NSPageController", // inconsistent capitalization
+            @"beginningViews": @"NSStackViewContainer",
+            @"middleViews": @"NSStackViewContainer",
+            @"endViews": @"NSStackViewContainer"
+          };
           RETAIN(XmlTagToObjectClassMap);
 
-          XmlTagsNotStacked = [NSArray arrayWithObject: @"document"];
+          XmlTagsNotStacked = @[@"document"];
           RETAIN(XmlTagsNotStacked);
 
-          XmlTagsToSkip = [NSArray arrayWithObject: @"dependencies"];
+          XmlTagsToSkip = @[@"dependencies"];
           RETAIN(XmlTagsToSkip);
 
-          ClassNamePrefixes = [NSArray arrayWithObjects: @"NS", @"IB", nil];
+          ClassNamePrefixes = @[@"NS", @"IB"];
           RETAIN(ClassNamePrefixes);
 
-          XmlReferenceAttributes = [NSArray arrayWithObjects: @"headerView", @"initialItem",
-                                            @"selectedItem", @"firstItem", @"secondItem",
-                                            @"row", @"column", nil];
+          XmlReferenceAttributes = @[@"headerView", @"initialItem", @"selectedItem", @"firstItem", @"secondItem", @"row", @"column"];
           RETAIN(XmlReferenceAttributes);
 
-          XmlConnectionRecordTags = [NSArray arrayWithObjects: @"action", @"outlet", @"binding", nil];
+          XmlConnectionRecordTags = @[@"action", @"outlet", @"binding"];
           RETAIN(XmlConnectionRecordTags);
 
-          XmlConstraintRecordTags = [NSArray arrayWithObject: @"constraint"];
+          XmlConstraintRecordTags = @[@"constraint"];
           RETAIN(XmlConstraintRecordTags);
           
           // These cross-reference from the OLD key to the NEW key that can be referenced and its value
@@ -263,68 +260,67 @@ static NSArray      *XmlBoolDefaultYes  = nil;
           // original OLD key type you will need to potentially add a decoding method, and if so, the
           // 'XmlKeyToDecoderSelectorMap' variable below should contain the key to its associated decoding
           // method for cross referencing...
-          XmlKeyMapTable = [NSDictionary dictionaryWithObjectsAndKeys:
-                                           @"isSeparatorItem", @"NSIsSeparator",
-                                           @"customClass", @"NSClassName",
-                                           @"catalog", @"NSCatalogName",
-                                           @"name" , @"NSColorName",
-                                           @"pullsDown", @"NSPullDown",
-                                           @"prototype", @"NSProtoCell",
-                                           @"metaFont", @"IBIsSystemFont",
-                                           @"defaultColumnWidth", @"NSPreferedColumnWidth",
-                                           @"borderColor", @"NSBorderColor2",
-                                           @"fillColor", @"NSFillColor2",
-                                           @"horizontalScroller", @"NSHScroller",
-                                           @"verticalScroller", @"NSVScroller",
-                                           @"keyEquivalent", @"NSKeyEquiv",
-                                           @"keyEquivalentModifierMask", @"NSKeyEquivModMask",
-                                           @"contentViewMargins", @"NSOffsets",
-                                           @"contentView", @"NSWindowView",
-                                           @"customClass", @"NSWindowClass",
-                                           @"contentRect", @"NSWindowRect",
-                                           @"insertionPointColor", @"NSInsertionColor",
-                                           @"vertical", @"NSIsVertical",
-                                           @"initialItem", @"NSSelectedTabViewItem",
-                                           @"allowsExpansionToolTips", @"NSControlAllowsExpansionToolTips",
-                                           @"segments", @"NSSegmentImages",
-                                           @"editable", @"NSIsEditable",
-                                           @"objectValues", @"NSPopUpListData",
-                                           @"maxNumberOfRows", @"NSMaxNumberOfGridRows",
-                                           @"maxNumberOfColumns", @"NSMaxNumberOfGridColumns",
-                                           @"sortKey", @"NSKey",
-                                           @"name", @"NSBinding",
-                                           @"items", @"NSMenuItems",
-                                           @"implicitIdentifier", @"NSToolbarIdentifier",
-                                           @"allowedToolbarItems", @"NSToolbarIBAllowedItems",
-                                           @"defaultToolbarItems", @"NSToolbarIBDefaultItems",
-                                           @"implicitItemIdentifier", @"NSToolbarItemIdentifier",
-                                           @"bordered", @"NSIsBordered",
-                                           @"altersStateOfSelectedItem", @"NSAltersState",
-                                           @"string", @"NS.relative",
-                                           @"canPropagateSelectedChildViewControllerTitle",
-                                                   @"NSTabViewControllerCanPropagateSelectedChildViewControllerTitle",
-                                           @"rowAlignment", @"NSGrid_alignment",  // NSGridView
-                                           @"rowSpacing", @"NSGrid_rowSpacing",
-                                           @"columnSpacing", @"NSGrid_columnSpacing",
-                                           @"hidden", @"NSGrid_hidden",
-                                           @"leadingPadding", @"NSGrid_leadingPadding",
-                                           @"bottomPadding", @"NSGrid_bottomPadding",
-                                           @"trailingPadding", @"NSGrid_trailingPadding",
-                                           @"topPadding", @"NSGrid_topPadding",
-                                           @"width", @"NSGrid_width",
-                                           @"height", @"NSGrid_height",
-                                           @"xPlacement", @"NSGrid_xPlacement",
-                                           @"yPlacement", @"NSGrid_yPlacement",
-                                           @"rows", @"NSGrid_rows",
-                                           @"columns", @"NSGrid_columns",
-                                           @"gridCells", @"NSGrid_cells",
-                                           @"contentView", @"NSGrid_content",
-                                           @"row", @"NSGrid_owningRow",
-                                           @"column", @"NSGrid_owningColumn",
-                                           @"beginningViews", @"NSStackViewBeginningContainer",  // NSStackView
-                                           @"middleViews", @"NSStackViewMiddleContainer",
-                                           @"endViews", @"NSStackViewEndContainer",
-                                           nil];
+          XmlKeyMapTable = @{
+            @"NSIsSeparator": @"isSeparatorItem",
+            @"NSClassName": @"customClass",
+            @"NSCatalogName": @"catalog",
+            @"NSColorName": @"name",
+            @"NSPullDown": @"pullsDown",
+            @"NSProtoCell": @"prototype",
+            @"IBIsSystemFont": @"metaFont",
+            @"NSPreferedColumnWidth": @"defaultColumnWidth",
+            @"NSBorderColor2": @"borderColor",
+            @"NSFillColor2": @"fillColor",
+            @"NSHScroller": @"horizontalScroller",
+            @"NSVScroller": @"verticalScroller",
+            @"NSKeyEquiv": @"keyEquivalent",
+            @"NSKeyEquivModMask": @"keyEquivalentModifierMask",
+            @"NSOffsets": @"contentViewMargins",
+            @"NSWindowView": @"contentView",
+            @"NSWindowClass": @"customClass",
+            @"NSWindowRect": @"contentRect",
+            @"NSInsertionColor": @"insertionPointColor",
+            @"NSIsVertical": @"vertical",
+            @"NSSelectedTabViewItem": @"initialItem",
+            @"NSControlAllowsExpansionToolTips": @"allowsExpansionToolTips",
+            @"NSSegmentImages": @"segments",
+            @"NSIsEditable": @"editable",
+            @"NSPopUpListData": @"objectValues",
+            @"NSMaxNumberOfGridRows": @"maxNumberOfRows",
+            @"NSMaxNumberOfGridColumns": @"maxNumberOfColumns",
+            @"NSKey": @"sortKey",
+            @"NSBinding": @"name",
+            @"NSMenuItems": @"items",
+            @"NSToolbarIdentifier": @"implicitIdentifier",
+            @"NSToolbarIBAllowedItems": @"allowedToolbarItems",
+            @"NSToolbarIBDefaultItems": @"defaultToolbarItems",
+            @"NSToolbarItemIdentifier": @"implicitItemIdentifier",
+            @"NSIsBordered": @"bordered",
+            @"NSAltersState": @"altersStateOfSelectedItem",
+            @"string": @"NS.relative",
+            @"NSTabViewControllerCanPropagateSelectedChildViewControllerTitle": @"canPropagateSelectedChildViewControllerTitle",
+            @"NSGrid_alignment": @"rowAlignment",  // NSGridView
+            @"NSGrid_rowSpacing": @"rowSpacing",
+            @"NSGrid_columnSpacing": @"columnSpacing",
+            @"NSGrid_hidden": @"hidden",
+            @"NSGrid_leadingPadding": @"leadingPadding",
+            @"NSGrid_bottomPadding": @"bottomPadding",
+            @"NSGrid_trailingPadding": @"trailingPadding",
+            @"NSGrid_topPadding": @"topPadding",
+            @"NSGrid_width": @"width",
+            @"NSGrid_height": @"height",
+            @"NSGrid_xPlacement": @"xPlacement",
+            @"NSGrid_yPlacement": @"yPlacement",
+            @"NSGrid_rows": @"rows",
+            @"NSGrid_columns": @"columns",
+            @"NSGrid_cells": @"gridCells",
+            @"NSGrid_content": @"contentView",
+            @"NSGrid_owningRow": @"row",
+            @"NSGrid_owningColumn": @"column",
+            @"NSStackViewBeginningContainer": @"beginningViews",  // NSStackView
+            @"NSStackViewMiddleContainer": @"middleViews",
+            @"NSStackViewEndContainer": @"endViews"
+          };
           RETAIN(XmlKeyMapTable);
 
           // These define keys that are always "CONTAINED" since they typically are a combination of key values
@@ -335,7 +331,7 @@ static NSArray      *XmlBoolDefaultYes  = nil;
           // If there is an easy way to check whether an existing OLD XIB key is contained within the XIB 5
           // version the 'containsValueForKey:' method in this file should be modified and the key omitted from this
           // list (i.e. NSIntercellSpacingWidth, NSIntercellSpacingHeight, etc)...
-          XmlKeysDefined = [NSArray arrayWithObjects: @"NSWindowBacking", @"NSWTFlags",
+          XmlKeysDefined = @[@"NSWindowBacking", @"NSWTFlags",
                                     @"NSvFlags", @"NSBGColor",
                                     @"NSSize",
                                     @"NSHScroller", @"NSVScroller", @"NSsFlags", @"NSsFlags2",
@@ -355,107 +351,102 @@ static NSArray      *XmlBoolDefaultYes  = nil;
                                     @"NSMatrixFlags", @"NSNumCols", @"NSNumRows",
                                     @"NSSharedData", @"NSFlags", @"NSTVFlags",
                                     @"NSDefaultParagraphStyle",
-                                    @"NSpiFlags", @"NSStackViewContainerNonDroppedViews",
-                                    nil];
+                                    @"NSpiFlags", @"NSStackViewContainerNonDroppedViews"];
           RETAIN(XmlKeysDefined);
 
           // These define XML tags (i.e. '<autoresizingMask ...') to an associated decode method...
-          XmlTagToDecoderSelectorMap =
-            [NSDictionary dictionaryWithObjectsAndKeys:
-                     @"decodeTableColumnResizingMaskForElement:", @"tableColumnResizingMask",
-                     @"decodeWindowStyleMaskForElement:", @"windowStyleMask",
-                     @"decodeTableViewGridLinesForElement:", @"tableViewGridLines",
-                     nil];
+          XmlTagToDecoderSelectorMap = @{
+            @"tableColumnResizingMask": @"decodeTableColumnResizingMaskForElement:",
+            @"windowStyleMask": @"decodeWindowStyleMaskForElement:",
+            @"tableViewGridLines": @"decodeTableViewGridLinesForElement:",
+          };
           RETAIN(XmlTagToDecoderSelectorMap);
 
           // These define XML attribute keys (i.e. '<object key="name" key="name" ...') to an associated decode method...
           // The associated decode method may process MULTIPLE keyed attributes as in such cases as
           // decoding the integer flag masks...
-          XmlKeyToDecoderSelectorMap =
-            [NSDictionary dictionaryWithObjectsAndKeys:
-               @"decodeStackViewNonDroppedViewsForElement:", @"NSStackViewContainerNonDroppedViews",
-               @"decodeDistributionForElement:", @"NSStackViewdistribution",
-               @"decodeOrientationForElement:", @"NSStackViewOrientation",
-               @"decodeXPlacementForElement:", @"NSGrid_xPlacement",
-               @"decodeYPlacementForElement:", @"NSGrid_yPlacement",
-               @"decodeRowAlignmentForElement:", @"NSGrid_alignment",
-               @"decodeIntercellSpacingHeightForElement:", @"NSIntercellSpacingHeight",
-               @"decodeIntercellSpacingWidthForElement:", @"NSIntercellSpacingWidth",
-               @"decodeColumnAutoresizingStyleForElement:", @"NSColumnAutoresizingStyle",
-               @"decodeNameForElement:", @"NSName",
-               @"decodeSliderCellTypeForElement:", @"NSSliderType",
-               @"decodeColumnResizingTypeForElement:", @"NSColumnResizingType",
-               @"decodeNumberOfVisibleColumnsForElement:", @"NSNumberOfVisibleColumns",
-               @"decodeSliderCellTickMarkPositionForElement:", @"NSTickMarkPosition",
-               @"decodeCellsForElement:", @"NSCells",
-               @"decodeNumberOfColumnsInMatrixForElement:", @"NSNumCols",
-               @"decodeNumberOfRowsInMatrixForElement:", @"NSNumRows",
-               @"decodeNoAutoenablesItemsForElement:", @"NSNoAutoenable",
-               @"decodeUsesItemFromMenuForElement:", @"NSUsesItemFromMenu",
-               @"decodeSelectedIndexForElement:", @"NSSelectedIndex",
-               @"decodePreferredEdgeForElement:", @"NSPreferredEdge",
-               @"decodeArrowPositionForElement:", @"NSArrowPosition",
-               @"decodeCellPrototypeForElement:", @"NSCellPrototype",
-               @"decodeTitleCellForElement:", @"NSTitleCell",
-               @"decodeBorderTypeForElement:", @"NSBorderType",
-               @"decodeBoxTypeForElement:", @"NSBoxType",
-               @"decodeTitlePositionForElement:", @"NSTitlePosition",
-               @"decodeModifierMaskForElement:", @"keyEquivalentModifierMask",
-               @"decodeMenuItemStateForElement:", @"NSState",
-               @"decodeCellForElement:", @"NSCell",
-               @"decodeFontSizeForElement:", @"NSSize",
-               @"decodeProgressIndicatorFlagsForElement:", @"NSpiFlags",
-               @"decodeTextViewSharedDataFlagsForElement:", @"NSFlags",
-               @"decodeSharedDataForElement:", @"NSSharedData",
-               @"decodeDefaultParagraphStyleForElement:", @"NSDefaultParagraphStyle",
-               @"decodeTextViewFlagsForElement:", @"NSTVFlags",
-               @"decodeMatrixFlagsForElement:", @"NSMatrixFlags",
-               @"decodeScrollClassFlagsForElement:", @"NSsFlags",
-               @"decodeScrollerFlags2ForElement:", @"NSsFlags2",
-               @"decodeScrollViewHeaderClipViewForElement:", @"NSHeaderClipView",
-               @"decodeBackgroundColorForElement:", @"NSBGColor",
-               @"decodeBrowserFlagsForElement:", @"NSBrFlags",
-               @"decodeClipViewFlagsForElement:", @"NScvFlags",
-               @"decodeTViewFlagsForElement:", @"NSTvFlags",
-               @"decodeViewFlagsForElement:", @"NSvFlags",
-               @"decodeCellContentsForElement:", @"NSContents",
-               @"decodeCellAlternateContentsForElement:", @"NSAlternateContents",
-               @"decodeCellFlags1ForElement:", @"NSCellFlags",
-               @"decodeCellFlags2ForElement:", @"NSCellFlags2",
-               @"decodeButtonFlags1ForElement:", @"NSButtonFlags",
-               @"decodeButtonFlags2ForElement:", @"NSButtonFlags2",
-               @"decodeCellNormalImageForElement:", @"NSNormalImage",
-               @"decodeCellAlternateImageForElement:", @"NSAlternateImage",
-               @"decodeWindowTemplateFlagsForElement:", @"NSWTFlags",
-               @"decodeWindowBackingStoreForElement:", @"NSWindowBacking",
-               @"decodeClipViewDocumentViewForElement:", @"NSDocView",
-               @"decodeColorWhiteForElement:", @"NSWhite",
-               @"decodeColorRGBForElement:", @"NSRGB",
-               @"decodeColorSpaceForElement:", @"NSColorSpace",
-               @"decodeColorCYMKForElement:", @"NSCYMK",
-               @"decodeSegmentItemImageForElement:", @"NSSegmentItemImage",
-               @"decodeBackgroundColorsForElement:", @"NSBackgroundColors",
-               @"decodeDividerStyleForElement:", @"NSDividerStyle",
-               @"decodeToolbarIdentifiedItemsForElement:", @"NSToolbarIBIdentifiedItems",
-               @"decodeToolbarImageForElement:", @"NSToolbarItemImage",
-               @"decodeControlContentsForElement:", @"NSControlContents",
-               @"decodePathStyle:", @"NSPathStyle",
-               @"decodeFirstAttribute:", @"NSFirstAttribute",
-               @"decodeSecondAttribute:", @"NSSecondAttribute",
-               @"decodeRelation:", @"NSRelation",
-               @"decodeTransitionStyle:", @"NSTransitionStyle",
-                 nil];
+          XmlKeyToDecoderSelectorMap = @{
+            @"NSStackViewContainerNonDroppedViews": @"decodeStackViewNonDroppedViewsForElement:",
+            @"NSStackViewdistribution": @"decodeDistributionForElement:",
+            @"NSStackViewOrientation": @"decodeOrientationForElement:",
+            @"NSGrid_xPlacement": @"decodeXPlacementForElement:",
+            @"NSGrid_yPlacement": @"decodeYPlacementForElement:",
+            @"NSGrid_alignment": @"decodeRowAlignmentForElement:",
+            @"NSIntercellSpacingHeight": @"decodeIntercellSpacingHeightForElement:",
+            @"NSIntercellSpacingWidth": @"decodeIntercellSpacingWidthForElement:",
+            @"NSColumnAutoresizingStyle": @"decodeColumnAutoresizingStyleForElement:",
+            @"NSName": @"decodeNameForElement:",
+            @"NSSliderType": @"decodeSliderCellTypeForElement:",
+            @"NSColumnResizingType": @"decodeColumnResizingTypeForElement:",
+            @"NSNumberOfVisibleColumns": @"decodeNumberOfVisibleColumnsForElement:",
+            @"NSTickMarkPosition": @"decodeSliderCellTickMarkPositionForElement:",
+            @"NSCells": @"decodeCellsForElement:",
+            @"NSNumCols": @"decodeNumberOfColumnsInMatrixForElement:",
+            @"NSNumRows": @"decodeNumberOfRowsInMatrixForElement:",
+            @"NSNoAutoenable": @"decodeNoAutoenablesItemsForElement:",
+            @"NSUsesItemFromMenu": @"decodeUsesItemFromMenuForElement:",
+            @"NSSelectedIndex": @"decodeSelectedIndexForElement:",
+            @"NSPreferredEdge": @"decodePreferredEdgeForElement:",
+            @"NSArrowPosition": @"decodeArrowPositionForElement:",
+            @"NSCellPrototype": @"decodeCellPrototypeForElement:",
+            @"NSTitleCell": @"decodeTitleCellForElement:",
+            @"NSBorderType": @"decodeBorderTypeForElement:",
+            @"NSBoxType": @"decodeBoxTypeForElement:",
+            @"NSTitlePosition": @"decodeTitlePositionForElement:",
+            @"keyEquivalentModifierMask": @"decodeModifierMaskForElement:",
+            @"NSState": @"decodeMenuItemStateForElement:",
+            @"NSCell": @"decodeCellForElement:",
+            @"NSSize": @"decodeFontSizeForElement:",
+            @"NSpiFlags": @"decodeProgressIndicatorFlagsForElement:",
+            @"NSFlags": @"decodeTextViewSharedDataFlagsForElement:",
+            @"NSSharedData": @"decodeSharedDataForElement:",
+            @"NSDefaultParagraphStyle": @"decodeDefaultParagraphStyleForElement:",
+            @"NSTVFlags": @"decodeTextViewFlagsForElement:",
+            @"NSMatrixFlags": @"decodeMatrixFlagsForElement:",
+            @"NSsFlags": @"decodeScrollClassFlagsForElement:",
+            @"NSsFlags2": @"decodeScrollerFlags2ForElement:",
+            @"NSHeaderClipView": @"decodeScrollViewHeaderClipViewForElement:",
+            @"NSBGColor": @"decodeBackgroundColorForElement:",
+            @"NSBrFlags": @"decodeBrowserFlagsForElement:",
+            @"NScvFlags": @"decodeClipViewFlagsForElement:",
+            @"NSTvFlags": @"decodeTViewFlagsForElement:",
+            @"NSvFlags": @"decodeViewFlagsForElement:",
+            @"NSContents": @"decodeCellContentsForElement:",
+            @"NSAlternateContents": @"decodeCellAlternateContentsForElement:",
+            @"NSCellFlags": @"decodeCellFlags1ForElement:",
+            @"NSCellFlags2": @"decodeCellFlags2ForElement:",
+            @"NSButtonFlags": @"decodeButtonFlags1ForElement:",
+            @"NSButtonFlags2": @"decodeButtonFlags2ForElement:",
+            @"NSNormalImage": @"decodeCellNormalImageForElement:",
+            @"NSAlternateImage": @"decodeCellAlternateImageForElement:",
+            @"NSWTFlags": @"decodeWindowTemplateFlagsForElement:",
+            @"NSWindowBacking": @"decodeWindowBackingStoreForElement:",
+            @"NSDocView": @"decodeClipViewDocumentViewForElement:",
+            @"NSWhite": @"decodeColorWhiteForElement:",
+            @"NSRGB": @"decodeColorRGBForElement:",
+            @"NSColorSpace": @"decodeColorSpaceForElement:",
+            @"NSCYMK": @"decodeColorCYMKForElement:",
+            @"NSSegmentItemImage": @"decodeSegmentItemImageForElement:",
+            @"NSBackgroundColors": @"decodeBackgroundColorsForElement:",
+            @"NSDividerStyle": @"decodeDividerStyleForElement:",
+            @"NSToolbarIBIdentifiedItems": @"decodeToolbarIdentifiedItemsForElement:",
+            @"NSToolbarItemImage": @"decodeToolbarImageForElement:",
+            @"NSControlContents": @"decodeControlContentsForElement:",
+            @"NSPathStyle": @"decodePathStyle:",
+            @"NSFirstAttribute": @"decodeFirstAttribute:",
+            @"NSSecondAttribute": @"decodeSecondAttribute:",
+            @"NSRelation": @"decodeRelation:",
+            @"NSTransitionStyle": @"decodeTransitionStyle:",
+          };
           RETAIN(XmlKeyToDecoderSelectorMap);
 
           // boolean fields that should be treated as YES when missing.
-          XmlBoolDefaultYes = [[NSArray alloc] initWithObjects:
-                                               @"altersStateOfSelectedItem",
-                                               @"bordered",
-                                               @"prefersToBeShown",
-                                               @"editable",
-                                               @"enabled",
-                                               @"canPropagateSelectedChildViewControllerTitle",
-                                               nil];
+          XmlBoolDefaultYes = @[@"altersStateOfSelectedItem",
+                                @"bordered",
+                                @"prefersToBeShown",
+                                @"editable",
+                                @"enabled",
+                                @"canPropagateSelectedChildViewControllerTitle"];
         }
     }
 }
@@ -520,11 +511,7 @@ static NSArray      *XmlBoolDefaultYes  = nil;
 
 - (GSXibElement*) createReference: (NSString *)oid
 {
-  GSXibElement *element = [[GSXibElement alloc] initWithType: @"reference"
-                                               andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                              @"object", @"key",
-                                                                            oid, @"ref",
-                                                                            nil]];
+  GSXibElement *element = [[GSXibElement alloc] initWithType: @"reference" andAttributes: @{@"key": @"object", @"ref": oid}];
   return AUTORELEASE(element);
 }
 
@@ -570,10 +557,8 @@ static NSArray      *XmlBoolDefaultYes  = nil;
   // Build a connection record
   connectionRecord = [[GSXibElement alloc] initWithType: @"object"
                                           andAttributes:
-                                             [NSDictionary dictionaryWithObjectsAndKeys:
-                                                             @"IBConnectionRecord", @"class",
-                                                           [[NSUUID UUID] UUIDString], @"id",
-                                                           nil]];
+                                             @{@"class": @"IBConnectionRecord",
+                                               @"id": [[NSUUID UUID] UUIDString] }];
   [connectionRecord setElement: element forKey: @"connection"];
 
   // Add the connection record element that includes this element...
@@ -584,20 +569,10 @@ static NSArray      *XmlBoolDefaultYes  = nil;
 - (GSXibElement*) orderedObjectForElement: (GSXibElement*)element
 {
   // Mimic the old IBObjectRecord instance...
-  NSDictionary  *attributes   = [NSDictionary dictionaryWithObjectsAndKeys:
-                                                @"IBObjectRecord", @"class",
-                                              [[NSUUID UUID] UUIDString], @"id",
-                                              nil];
-  GSXibElement *objectRecord = [[GSXibElement alloc] initWithType: @"object"
-                                                    andAttributes: attributes];
-  GSXibElement *parent       = [[GSXibElement alloc] initWithType: @"nil"
-                                                    andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                                   @"parent", @"key",
-                                                                                 nil]];
-  GSXibElement *children     = [[GSXibElement alloc] initWithType: @"nil"
-                                                    andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                                   @"children", @"key",
-                                                                                 nil]];
+  NSDictionary  *attributes   = @{@"class": @"IBObjectRecord", @"id": [[NSUUID UUID] UUIDString]};
+  GSXibElement *objectRecord = [[GSXibElement alloc] initWithType: @"object" andAttributes: attributes];
+  GSXibElement *parent       = [[GSXibElement alloc] initWithType: @"nil" andAttributes: @{@"key": @"parent"}];
+  GSXibElement *children     = [[GSXibElement alloc] initWithType: @"nil" andAttributes: @{@"key": @"children"}];
   GSXibElement *reference    = [self createReference: [element attributeForKey: @"id"]];
 
   [objectRecord setElement: element forKey: @"object"];
@@ -623,24 +598,12 @@ static NSArray      *XmlBoolDefaultYes  = nil;
   // Mimic the old IBAttributePlaceholders instance...
   if (objectRecord == nil)
     {
-      objectRecord                  = [[GSXibElement alloc] initWithType: @"dictionary"
-                                                            andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                                           @"NSMutableDictionary", @"class",
-                                                                                         refID, @"id",
-                                                                                         nil]];
-      GSXibElement *stringRecord   = [[GSXibElement alloc] initWithType: @"string"
-                                                            andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                                           @"NS.key.0", @"key",
-                                                                                         nil]];
+      objectRecord                  = [[GSXibElement alloc] initWithType: @"dictionary" andAttributes: @{@"class": @"NSMutableDictionary", @"id": refID}];
+      GSXibElement *stringRecord   = [[GSXibElement alloc] initWithType: @"string" andAttributes: @{@"key": @"NS.key.0"}];
       GSXibElement *placeholderRec = [[GSXibElement alloc] initWithType: @"object"
-                                                            andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                                           @"IBUserDefinedRuntimeAttributesPlaceholder", @"class",
-                                                                                         @"IBUserDefinedRuntimeAttributesPlaceholderName", @"key",
-                                                                                         nil]];
-      GSXibElement *placeStringRec = [[GSXibElement alloc] initWithType: @"string"
-                                                            andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                                           @"name", @"key",
-                                                                            nil]];
+                                                            andAttributes: @{@"class": @"IBUserDefinedRuntimeAttributesPlaceholder", 
+                                                                             @"key": @"IBUserDefinedRuntimeAttributesPlaceholderName"}];
+      GSXibElement *placeStringRec = [[GSXibElement alloc] initWithType: @"string" andAttributes: @{@"key": @"name"}];
       GSXibElement *referenceRec   = [self createReference: [element attributeForKey: @"id"]];
 
       // Setup placeholder record...
@@ -711,40 +674,18 @@ static NSArray      *XmlBoolDefaultYes  = nil;
   _orderedObjectsDict = RETAIN([NSMutableDictionary dictionary]);
 
   // Create our object(s)...
-  _orderedObjects      = [[GSXibElement alloc] initWithType: @"array"
-                                              andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                             @"orderedObjects", @"key",
-                                                                           nil]];
-  _objectRecords       = [[GSXibElement alloc] initWithType: @"object"
-                                              andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                             @"IBMutableOrderedSet", @"class",
-                                                                           @"objectRecords", @"key",
-                                                                           nil]];
-  _connectionRecords   = [[GSXibElement alloc] initWithType: @"array"
-                                              andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                             @"connectionRecords", @"key",
-                                                                           nil]];
-  _flattenedProperties = [[GSXibElement alloc] initWithType: @"dictionary"
-                                              andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                             @"NSMutableDictionary", @"class",
-                                                                           @"flattenedProperties", @"key",
-                                                                           nil]];
-  _runtimeAttributes   = [[GSXibElement alloc] initWithType: @"dictionary"
-                                              andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                             @"NSMutableDictionary", @"class",
-                                                                           @"connectionRecords", @"key",
-                                                                           nil]];
+  _orderedObjects      = [[GSXibElement alloc] initWithType: @"array" andAttributes: @{@"key": @"orderedObjects"}];
+  _objectRecords       = [[GSXibElement alloc] initWithType: @"object" andAttributes: @{@"class": @"IBMutableOrderedSet", @"key": @"objectRecords" }];
+  _connectionRecords   = [[GSXibElement alloc] initWithType: @"array" andAttributes: @{@"key": @"connectionRecords"}];
+  _flattenedProperties = [[GSXibElement alloc] initWithType: @"dictionary" andAttributes: @{@"class": @"NSMutableDictionary", @"key": @"flattenedProperties"}];
+  _runtimeAttributes   = [[GSXibElement alloc] initWithType: @"dictionary" andAttributes: @{@"class": @"NSMutableDictionary", @"key": @"connectionRecords"}];
 
   // objectRecords...
   [_objectRecords setElement: _orderedObjects forKey: @"orderedObjects"];
 
   // We will imitate the old XIB loading using an IBObjectContainer
   // stored with key "IBDocument.Objects"...
-  _IBObjectContainer = [[GSXibElement alloc] initWithType: @"object"
-                                             andAttributes: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                                            @"IBObjectContainer", @"class",
-                                                                          @"IBDocument.Objects", @"key",
-                                                                          nil]];
+  _IBObjectContainer = [[GSXibElement alloc] initWithType: @"object" andAttributes: @{@"class": @"IBObjectContainer", @"key": @"IBDocument.Objects"}];
 
   // Create the linked set of XIB elements...
   [_IBObjectContainer setElement: _connectionRecords forKey: @"connectionRecords"];
@@ -781,10 +722,7 @@ static NSArray      *XmlBoolDefaultYes  = nil;
   if (theId == nil || customClassName == nil)
     return;
 
-  NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                                                     theId, @"id",
-                                                   parentClassName, @"parentClassName",
-                                                   customClassName, @"customClassName",nil];
+  NSMutableDictionary *dict = @{@"id": theId, @"parentClassName": parentClassName, @"customClassName": customClassName};
   [_customClasses addObject: dict];
   // NSLog(@"theId = %@, parentClassName = %@, customClassName = %@", theId, parentClassName, customClassName);
 }

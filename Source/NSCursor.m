@@ -169,8 +169,7 @@ NSCursor *getStandardCursor(NSString *name, int style)
     {
       void *c = NULL;
     
-      cursor = [[NSCursor_class alloc] initWithImage: nil
-                                             hotSpot: NSZeroPoint];
+      cursor = [[NSCursor_class alloc] initWithImage: nil hotSpot: NSZeroPoint];
       if (nil != cursor)
         {
           [GSCurrentServer() standardcursor: style : &c];

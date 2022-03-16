@@ -33,7 +33,7 @@
 #import <Foundation/NSArchiver.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSException.h>
-#import <Foundation/NSLock.h>
+#import <Foundation/NSLock.h> // TODO: needed?
 #import <Foundation/NSNotification.h>
 #import <Foundation/NSUserDefaults.h>
 #import <Foundation/NSBundle.h>
@@ -191,63 +191,62 @@ void initSystemColors(void)
 
   // Set up a dictionary containing the names of all the system colors
   // as keys and with colors in string format as values.
-  white = [NSString stringWithFormat: @"%g %g %g",
-		    (double)NSWhite, (double)NSWhite, (double)NSWhite];
-  lightGray = [NSString stringWithFormat: @"%g %g %g",
-			(double)NSLightGray, (double)NSLightGray, (double)NSLightGray];
-  gray = [NSString stringWithFormat: @"%g %g %g",
-		   (double)NSGray, (double)NSGray, (double)NSGray];
-  darkGray = [NSString stringWithFormat: @"%g %g %g",
-		       (double)NSDarkGray, (double)NSDarkGray, (double)NSDarkGray];
-  black = [NSString stringWithFormat: @"%g %g %g",
-		    (double)NSBlack, (double)NSBlack, (double)NSBlack];
+#ifndef __EMSCRIPTEN__
+  white = [NSString stringWithFormat: @"%g %g %g", (double)NSWhite, (double)NSWhite, (double)NSWhite];
+  lightGray = [NSString stringWithFormat: @"%g %g %g", (double)NSLightGray, (double)NSLightGray, (double)NSLightGray];
+  gray = [NSString stringWithFormat: @"%g %g %g", (double)NSGray, (double)NSGray, (double)NSGray];
+  darkGray = [NSString stringWithFormat: @"%g %g %g", (double)NSDarkGray, (double)NSDarkGray, (double)NSDarkGray];
+  black = [NSString stringWithFormat: @"%g %g %g", (double)NSBlack, (double)NSBlack, (double)NSBlack];
+#else
+  white = @"1.0 1.0 1.0";
+  lightGray = @"0.667 0.667 0.667";
+  gray = @"0.5 0.5 0.5";
+  darkGray = @"0.333 0.333 0.333";
+  black = @"0.0 0.0 0.0";
+#endif
   lightYellow = @"1.0 1.0 0.9";
 
-  colorStrings = [[NSMutableDictionary alloc]
-		     initWithObjectsAndKeys:
-		     black, @"alternateSelectedControlColor",
-		     white, @"alternateSelectedControlTextColor",
-		     lightGray, @"controlBackgroundColor",
-		     lightGray, @"controlColor",
-		     black, @"controlDarkShadowColor",
-		     lightGray, @"controlHighlightColor",
-		     white, @"controlLightHighlightColor",
-		     darkGray, @"controlShadowColor",
-		     black, @"controlTextColor",
-		     darkGray, @"disabledControlTextColor",
-		     gray, @"gridColor",
-		     lightGray, @"headerColor",
-		     black, @"headerTextColor",
-		     white, @"highlightColor",
-		     black, @"keyboardFocusIndicatorColor",
-		     lightGray, @"knobColor",
-		     black, @"labelColor",
-		     black, @"quaternaryLabelColor",
-		     gray, @"scrollBarColor",
-		     black, @"secondaryLabelColor",
-		     lightGray, @"secondarySelectedControlColor",
-		     white, @"selectedControlColor",
-		     black, @"selectedControlTextColor",
-		     lightGray, @"selectedKnobColor",
-		     white, @"selectedMenuItemColor",
-		     black, @"selectedMenuItemTextColor",
-		     lightGray, @"selectedTextBackgroundColor",
-		     black, @"selectedTextColor",
-		     black, @"shadowColor",
-		     black, @"tertiaryLabelColor",
-		     white, @"textBackgroundColor",
-		     black, @"textColor",
-		     lightGray, @"windowBackgroundColor",
-		     black, @"windowFrameColor",
-		     white, @"windowFrameTextColor",
-
-		     white, @"rowBackgroundColor",
-		     lightGray, @"alternateRowBackgroundColor",
-
-		     lightYellow, @"toolTipColor",
-		     black, @"toolTipTextColor",
-
-		     nil];
+  colorStrings = @{
+    @"alternateSelectedControlColor": black,
+    @"alternateSelectedControlTextColor": white,
+    @"controlBackgroundColor": lightGray,
+    @"controlColor": lightGray,
+    @"controlDarkShadowColor": black,
+    @"controlHighlightColor": lightGray,
+    @"controlLightHighlightColor": white,
+    @"controlShadowColor": darkGray,
+    @"controlTextColor": black,
+    @"disabledControlTextColor": darkGray,
+    @"gridColor": gray,
+    @"headerColor": lightGray,
+    @"headerTextColor": black,
+    @"highlightColor": white,
+    @"keyboardFocusIndicatorColor": black,
+    @"knobColor": lightGray,
+    @"labelColor": black,
+    @"quaternaryLabelColor": black,
+    @"scrollBarColor": gray,
+    @"secondaryLabelColor": black,
+    @"secondarySelectedControlColor": lightGray,
+    @"selectedControlColor": white,
+    @"selectedControlTextColor": black,
+    @"selectedKnobColor": lightGray,
+    @"selectedMenuItemColor": white,
+    @"selectedMenuItemTextColor": black,
+    @"selectedTextBackgroundColor": lightGray,
+    @"selectedTextColor": black,
+    @"shadowColor": black,
+    @"tertiaryLabelColor": black,
+    @"textBackgroundColor": white,
+    @"textColor": black,
+    @"windowBackgroundColor": lightGray,
+    @"windowFrameColor": black,
+    @"windowFrameTextColor": white,
+    @"rowBackgroundColor": white,
+    @"alternateRowBackgroundColor": lightGray,
+    @"toolTipColor": lightYellow,
+    @"toolTipTextColor": black,
+  };
 
   systemColors = RETAIN([NSColorList colorListNamed: @"System"]);
   defaultSystemColors = [[NSColorList alloc] initWithName: @"System"];

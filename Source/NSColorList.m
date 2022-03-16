@@ -30,6 +30,7 @@
 
 #import "config.h"
 #import <Foundation/NSNotification.h>
+#import <Foundation/NSNotification.h>
 #import <Foundation/NSNotificationQueue.h>
 #import <Foundation/NSLock.h>
 #import <Foundation/NSDictionary.h>
@@ -688,9 +689,9 @@ static NSColorList *themeColorList = nil;
 	    }
 	}  
 
-      if (defaultSystemColorList != nil)
-        {
-	  [_availableColorLists addObject: defaultSystemColorList];
+      if (defaultSystemColorList != nil) {
+	      [_availableColorLists addObject: defaultSystemColorList];
+	    }
 #ifndef GNUSTEP_NO_MULTI_THREAD
       [_colorListLock unlock];
 #endif

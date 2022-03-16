@@ -200,6 +200,8 @@ static NSArray *modes = nil;
 a list of windows that are, wrt. -gui, on-screen). */
 static GSIArray_t autodisplayedWindows;
 
+static unsigned int __auto_display_cnt = 0;
+
 /*
 This method handles all normal displaying. It is set to be run on each
 runloop iteration when the first window is created
@@ -221,6 +223,19 @@ has blocked and waited for events.
       [GSIArrayItemAtIndex(&autodisplayedWindows, i).ext _handleAutodisplay];
     }
 
+  if (modes == nil) {
+    modes = @[NSDefaultRunLoopMode, NSModalPanelRunLoopMode, NSEventTrackingRunLoopMode];
+  }
+
+#if 0
+  if (__auto_display_cnt > 100) {
+    fprintf(stderr, "did exit after calling %s 100 times\n", __PRETTY_FUNCTION__);
+    return;
+  }
+
+  __auto_display_cnt++;
+#endif
+
   [[NSRunLoop currentRunLoop]
          performSelector: @selector(_handleAutodisplay:)
                   target: self
@@ -232,13 +247,12 @@ has blocked and waited for events.
 +(void) _addAutodisplayedWindow: (NSWindow *)w
 {
   int i;
-  /* If it's the first time we're called, set up the performer and modes
-  array. */
+  
+  // If it's the first time we're called, set up the performer and modes array.
   if (!modes)
     {
-      modes = [[NSArray alloc] initWithObjects: NSDefaultRunLoopMode,
-                               NSModalPanelRunLoopMode,
-                               NSEventTrackingRunLoopMode, nil];
+      modes = @[NSDefaultRunLoopMode, NSModalPanelRunLoopMode, NSEventTrackingRunLoopMode];
+      RETAIN(modes);
       [[NSRunLoop currentRunLoop]
          performSelector: @selector(_handleAutodisplay:)
                   target: self
@@ -539,6 +553,7 @@ static NSSize scaledIconSizeForSize(NSSize imageSize)
 
 - (void) mouseDown: (NSEvent*)theEvent
 {
+  fprintf(stderr, "did enter at %s\n", __PRETTY_FUNCTION__);
   if ([theEvent clickCount] >= 2)
     {
       NSWindow *w = [_window counterpart];
@@ -690,10 +705,12 @@ static NSSize scaledIconSizeForSize(NSSize imageSize)
 /*
  * Class variables
  */
+#ifndef __EMSCRIPTEN__
 static SEL        ccSel;
 static SEL        ctSel;
 static IMP        ccImp;
 static IMP        ctImp;
+#endif
 static Class      responderClass;
 static Class      viewClass;
 static NSMutableSet *autosaveNames;
@@ -709,10 +726,12 @@ static NSNotificationCenter *nc = nil;
   if (self == [NSWindow class])
     {
       [self setVersion: 3];
+#ifndef __EMSCRIPTEN__
       ccSel = @selector(_checkCursorRectangles:forEvent:);
       ctSel = @selector(_checkTrackingRectangles:forEvent:);
       ccImp = [self instanceMethodForSelector: ccSel];
       ctImp = [self instanceMethodForSelector: ctSel];
+#endif
       responderClass = [NSResponder class];
       viewClass = [NSView class];
       autosaveNames = [NSMutableSet new];
@@ -1133,8 +1152,7 @@ many times.
       windowDecorator = [GSWindowDecorationView windowDecorator];
     }
 
-  _wv = [windowDecorator newWindowDecorationViewWithFrame: cframe
-                                                   window: self];
+  _wv = [windowDecorator newWindowDecorationViewWithFrame: cframe window: self];
   [_wv _viewWillMoveToWindow: self];
   [_wv setNextResponder: self];
 
@@ -1340,10 +1358,18 @@ many times.
 static NSString *
 titleWithRepresentedFilename(NSString *representedFilename)
 {
+#ifndef __EMSCRIPTEN__
+  // FIXME: wasm variadic args.
   return [NSString stringWithFormat: @"%@  --  %@",
 		   [representedFilename lastPathComponent],
 		   [[representedFilename stringByDeletingLastPathComponent]
 		     stringByAbbreviatingWithTildeInPath]];
+#else
+  NSString *title = representedFilename != nil ? [representedFilename lastPathComponent] : @"";
+  title = [title stringByAppendingString: @" -- "];
+  //title = [title stringByAppendingString: [[representedFilename stringByDeletingLastPathComponent] stringByAbbreviatingWithTildeInPath]];
+  return title;
+#endif
 }
 
 - (BOOL) _hasTitleWithRepresentedFilename
@@ -1873,8 +1899,7 @@ titleWithRepresentedFilename(NSString *representedFilename)
   GSDisplayServer *srv = GSServerForWindow(self);
   BOOL display = NO;
 
-  if (YES == [[NSUserDefaults standardUserDefaults]
-    boolForKey: @"GSBackgroundApp"])
+  if (YES == [[NSUserDefaults standardUserDefaults] boolForKey: @"GSBackgroundApp"])
     {
       return;
     }
@@ -1902,8 +1927,7 @@ titleWithRepresentedFilename(NSString *representedFilename)
           && [NSApp isHidden] == NO
           && _f.visible == NO)
         {
-          NSRect nframe = [self constrainFrameRect: _frame
-                                toScreen: [self screen]];
+          NSRect nframe = [self constrainFrameRect: _frame toScreen: [self screen]];
           [self setFrame: nframe display: NO];
         }
       // create deferred window
@@ -2650,6 +2674,9 @@ titleWithRepresentedFilename(NSString *representedFilename)
  */
 - (void) flushWindow
 {
+#ifdef DEGUB_WINDOW_FLUSH
+  fprintf(stderr, "enter at %s\n", __PRETTY_FUNCTION__);
+#endif
   NSUInteger i;
 
   /*
@@ -2659,6 +2686,9 @@ titleWithRepresentedFilename(NSString *representedFilename)
   if (_disableFlushWindow)
     {
       _f.needs_flush = YES;
+#ifdef DEGUB_WINDOW_FLUSH
+      fprintf(stderr, "flushWindow where disabled!\n");
+#endif
       return;
     }
 
@@ -2670,6 +2700,9 @@ titleWithRepresentedFilename(NSString *representedFilename)
   if (_backingType == NSBackingStoreNonretained)
     {
       [_context flushGraphics];
+#ifdef DEGUB_WINDOW_FLUSH
+      fprintf(stderr, "flushWindow used [_context flushGraphics]\n");
+#endif
       return;
     }
 
@@ -2680,6 +2713,9 @@ titleWithRepresentedFilename(NSString *representedFilename)
       if ([_rectsBeingDrawn count] == 0)
         {
           _f.needs_flush = NO;
+#ifdef DEGUB_WINDOW_FLUSH
+          fprintf(stderr, "flushWindow: _rectNeedingFlush is empty and _rectsBeingDrawn count is 0\n");
+#endif
           return;
         }
     }
@@ -2687,6 +2723,9 @@ titleWithRepresentedFilename(NSString *representedFilename)
   /*
    * Accumulate the rectangles from all nested focus locks.
    */
+#ifdef DEGUB_WINDOW_FLUSH
+  fprintf(stderr, "flushWindow: combinding _rectNeedingFlush with _rectsBeingDrawn (count %lu)\n", [_rectsBeingDrawn count]);
+#endif
   i = [_rectsBeingDrawn count];
   while (i-- > 0)
     {
@@ -2696,8 +2735,10 @@ titleWithRepresentedFilename(NSString *representedFilename)
 
   if (_windowNum > 0)
     {
-      [GSServerForWindow(self) flushwindowrect: _rectNeedingFlush
-                                              : _windowNum];
+#ifdef DEGUB_WINDOW_FLUSH
+      fprintf(stderr, "flushWindow: calling [GSServerForWindow flushwindowrect] flush rect { %f %f %f %f } win-id: %ld\n", NSMinX(_rectNeedingFlush), NSMinY(_rectNeedingFlush), NSWidth(_rectNeedingFlush), NSHeight(_rectNeedingFlush), _windowNum);
+#endif
+      [GSServerForWindow(self) flushwindowrect: _rectNeedingFlush : _windowNum];
     }
   _f.needs_flush = NO;
   _rectNeedingFlush = NSZeroRect;
@@ -3661,6 +3702,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
  */
 - (BOOL) makeFirstResponder: (NSResponder*)aResponder
 {
+  fprintf(stderr, "did enter call at %s\n", __PRETTY_FUNCTION__);
   if (_firstResponder == aResponder)
     {
       return YES;
@@ -4005,7 +4047,11 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
             {
               if (![subs[i] isHidden])
                 {
+#ifndef __EMSCRIPTEN__
                   (*ctImp)(self, ctSel, subs[i], theEvent);
+#else
+                  [self _checkTrackingRectangles: subs[i] forEvent: theEvent];
+#endif
                 }
             }
         }
@@ -4052,6 +4098,8 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
   NSView *v;
   NSEventType type;
 
+  //fprintf(stderr, "entered call at %s\n", __PRETTY_FUNCTION__);
+
   /*
   If the backend reacts slowly, events (eg. mouse down) might arrive for a
   window that has been ordered out (and thus is logically invisible). We
@@ -4064,6 +4112,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
   */
   if (!_f.visible && [theEvent type] != NSAppKitDefined)
     {
+      fprintf(stderr, "NSEvent: Discard (window not visible)\n");
       NSDebugLLog(@"NSEvent", @"Discard (window not visible) %@", theEvent);
       return;
     }
@@ -4077,6 +4126,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
   if ([self ignoresMouseEvents]
     && GSMouseEventMask == NSEventMaskFromType(type))
     {
+      fprintf(stderr, "NSEvent: Discard (window ignoring mouse)\n");
       NSDebugLLog(@"NSEvent", @"Discard (window ignoring mouse) %@", theEvent);
       return;
     }
@@ -4089,6 +4139,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
 
           if (_f.has_closed == NO)
             {
+              fprintf(stderr, "running [_wv hitTest:] now\n");
               v = [_wv hitTest: [theEvent locationInWindow]];
               if (_f.is_key == NO && _windowLevel != NSDesktopWindowLevel)
                 {
@@ -4097,6 +4148,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
                       || [v needsPanelToBecomeKey])
                     {
                       v = nil;
+                      fprintf(stderr, "will call [self makeKeyAndOrderFront:]\n");
                       [self makeKeyAndOrderFront: self];
                     }
                 }
@@ -4110,6 +4162,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
               if ((_styleMask & (NSIconWindowMask | NSMiniWindowMask)) == 0
 	          && ![NSApp isActive])
                 {
+                  fprintf(stderr, "did activate NSApp\n");
                   v = nil;
                   [NSApp activateIgnoringOtherApps: YES];
                 }
@@ -4132,6 +4185,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
                   if (_firstResponder != v && ![v isKindOfClass: [NSButton class]])
                     {
                       // Only try to set first responder, when the view wants it.
+                      fprintf(stderr, "trying to make v first-responder\n");
                       if ([v acceptsFirstResponder] && ![self makeFirstResponder: v])
                         {
                           return;
@@ -4143,6 +4197,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
                     }
                   else
                     {
+                      fprintf(stderr, "did assign _lastLeftMouseDownView\n");
                       ASSIGN(_lastLeftMouseDownView, v);
                       if (toolTipVisible != nil)
                         {
@@ -4151,6 +4206,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
                            */
                           [toolTipVisible mouseDown: theEvent];
                         }
+                      fprintf(stderr, "will run [v mouseDown:] now\n");
                       [v mouseDown: theEvent];
                     }
                 }
@@ -4161,6 +4217,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
             }
 	  else
 	    {
+              fprintf(stderr, "NSEvent: Discard (window closed)\n");
               NSDebugLLog(@"NSEvent", @"Discard (window closed) %@", theEvent);
 	    }
           _lastPoint = [theEvent locationInWindow];
@@ -4259,7 +4316,11 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
          * a tracking rectangle then we need to determine if we should send
          * a NSMouseEntered or NSMouseExited event.
          */
+#ifndef __EMSCRIPTEN__
         (*ctImp)(self, ctSel, _wv, theEvent);
+#else
+        [self _checkTrackingRectangles: _wv forEvent: theEvent];
+#endif
 
         if (_f.is_key)
           {
@@ -4270,7 +4331,11 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
              */
             if (_f.cursor_rects_enabled)
               {
+#ifndef __EMSCRIPTEN__
                 (*ccImp)(self, ccSel, _wv, theEvent);
+#else
+                [self _checkCursorRectangles: _wv forEvent: theEvent];
+#endif
               }
           }
 
@@ -4516,7 +4581,11 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
                * We need to go through all of the views, and if there
                * is any with a tracking rectangle then we need to
                * determine if we should send a NSMouseExited event.  */
+#ifndef __EMSCRIPTEN__
               (*ctImp)(self, ctSel, _wv, theEvent);
+#else
+              [self _checkTrackingRectangles: _wv forEvent: theEvent];
+#endif
 
               if (_f.is_key)
                 {
@@ -5920,8 +5989,7 @@ current key view.<br />
 - (NSArray *) drawers
 {
   // TODO
-  NSLog(@"Method %s is not implemented for class %s",
-        "drawers", "NSWindow");
+  NSLog(@"Method %s is not implemented for class %s", "drawers", "NSWindow");
   return nil;
 }
 
@@ -6092,7 +6160,7 @@ current key view.<br />
   _backgroundColor = RETAIN([NSColor windowBackgroundColor]);
   _representedFilename = @"Window";
   _miniaturizedTitle = @"Window";
-  _miniaturizedImage = RETAIN([NSApp applicationIconImage]);
+  _miniaturizedImage = nil; //RETAIN([NSApp applicationIconImage]);
   _windowTitle = @"Window";
   _lastPoint = NSZeroPoint;
   _windowLevel = NSNormalWindowLevel;

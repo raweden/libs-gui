@@ -71,9 +71,9 @@
 
   [self setAutoresizingMask: NSViewWidthSizable | NSViewMinYMargin];
 
-  textAttributes = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
-    [NSFont boldSystemFontOfSize: 0], NSFontAttributeName,
-    [NSColor blackColor], NSForegroundColorAttributeName, nil];
+  textAttributes = [[NSMutableDictionary alloc] init]; 
+  [textAttributes setObject: [NSFont boldSystemFontOfSize: 0] forKey: NSFontAttributeName];
+  [textAttributes setObject: [NSColor blackColor] forKey: NSForegroundColorAttributeName];
 
   titleColor = RETAIN ([NSColor lightGrayColor]);
 

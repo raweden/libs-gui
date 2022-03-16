@@ -1800,28 +1800,28 @@ static NSDictionary *titleTextAttributes[3] = {nil, nil, nil};
         {
           mainColor = [NSColor windowFrameTextColor];
         }
- 
-      titleTextAttributes[0] = [[NSMutableDictionary alloc]
-	initWithObjectsAndKeys:
-	  [NSFont titleBarFontOfSize: 0], NSFontAttributeName,
-	  keyColor, NSForegroundColorAttributeName,
-	  p, NSParagraphStyleAttributeName,
-	  nil];
+ 			
+ 			NSMutableDictionary *tmp = [[NSMutableDictionary alloc] init];
+ 			[tmp setObject: [NSFont titleBarFontOfSize: 0] forKey: NSFontAttributeName];
+ 			[tmp setObject: keyColor forKey: NSForegroundColorAttributeName];
+ 			[tmp setObject: p forKey: NSParagraphStyleAttributeName];
+ 			[tmp retain];
+ 			titleTextAttributes[0] = tmp;
+			
+			tmp = [[NSMutableDictionary alloc] init];
+			[tmp setObject: [NSFont titleBarFontOfSize: 0] forKey: NSFontAttributeName];
+			[tmp setObject: normalColor forKey: NSForegroundColorAttributeName];
+			[tmp setObject: p forKey: NSParagraphStyleAttributeName];
+ 			[tmp retain];
+      titleTextAttributes[1] = tmp;
 
-      titleTextAttributes[1] = [[NSMutableDictionary alloc]
-	initWithObjectsAndKeys:
-	  [NSFont titleBarFontOfSize: 0], NSFontAttributeName,
-	  normalColor, NSForegroundColorAttributeName,
-	  p, NSParagraphStyleAttributeName,
-	  nil];
 
-      titleTextAttributes[2] = [[NSMutableDictionary alloc]
-	initWithObjectsAndKeys:
-	  [NSFont titleBarFontOfSize: 0], NSFontAttributeName,
-	  mainColor, NSForegroundColorAttributeName,
-	  p, NSParagraphStyleAttributeName,
-	  nil];
-
+      tmp = [[NSMutableDictionary alloc] init];
+			[tmp setObject: [NSFont titleBarFontOfSize: 0] forKey: NSFontAttributeName];
+			[tmp setObject: mainColor forKey: NSForegroundColorAttributeName];
+			[tmp setObject: p forKey: NSParagraphStyleAttributeName];
+ 			[tmp retain];
+      titleTextAttributes[2] = tmp;
       RELEASE(p);
     }
 
@@ -1833,8 +1833,7 @@ static NSDictionary *titleTextAttributes[3] = {nil, nil, nil};
       border is drawn in -drawRect: since it might be drawn even if we don't have
       a title bar.
       */
-      NSColor *borderColor = [self colorNamed: @"windowBorderColor"
-                                        state: GSThemeNormalState];
+      NSColor *borderColor = [self colorNamed: @"windowBorderColor" state: GSThemeNormalState];
       if (nil == borderColor)
         {
           borderColor = [NSColor blackColor];
@@ -1897,6 +1896,7 @@ static NSDictionary *titleTextAttributes[3] = {nil, nil, nil};
 	}
   
       titleSize = [title sizeWithAttributes: titleTextAttributes[inputState]];
+      fprintf(stderr, "titleSize in %s computed to {%f, %f}\n", __PRETTY_FUNCTION__, titleSize.width, titleSize.height);
       if (titleSize.width <= workRect.size.width)
 	workRect.origin.x = NSMidX(workRect) - titleSize.width / 2;
       workRect.origin.y = NSMidY(workRect) - titleSize.height / 2;

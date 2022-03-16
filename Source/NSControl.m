@@ -891,10 +891,9 @@ static NSNotificationCenter *nc;
 
 - (void) mouseDown: (NSEvent *)theEvent
 {
+
   unsigned int event_mask = NSLeftMouseDownMask | NSLeftMouseUpMask
-    | NSMouseMovedMask | NSLeftMouseDraggedMask | NSOtherMouseDraggedMask
-    | NSRightMouseDraggedMask;
-  NSEvent *e = nil;
+    | NSMouseMovedMask | NSLeftMouseDraggedMask | NSOtherMouseDraggedMask | NSRightMouseDraggedMask;
 
   // If not enabled ignore mouse clicks
   if (![self isEnabled])
@@ -909,12 +908,13 @@ static NSNotificationCenter *nc;
       [super mouseDown: theEvent];
       return;
     }
+#ifndef __EMSCRIPTEN__
 
   // Make sure self does not go away during the processing of the event
   RETAIN(self); 
 
   // loop until mouse goes up
-  e = theEvent;
+  NSEvent *e = theEvent;
   while (1)
     {
       NSPoint location = [self convertPoint: [e locationInWindow] 
@@ -953,6 +953,12 @@ static NSNotificationCenter *nc;
 
   // undo initial retain
   RELEASE(self); 
+
+#else
+    [_cell setHighlighted: YES];
+    [self setNeedsDisplay: YES];
+    fprintf(stderr, "did enter at %s\n", __PRETTY_FUNCTION__);
+#endif // #ifndef __EMSCRIPTEN__
 }
 
 - (BOOL) shouldBeTreatedAsInkEvent: (NSEvent *)theEvent

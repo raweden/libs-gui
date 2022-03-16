@@ -557,10 +557,7 @@ this happens when layout has been invalidated, and when we are resized.
 	     target: self
 	   argument: nil
 	      order: 599999
-	      modes: [NSArray arrayWithObjects: /* TODO: set up array in advance */
-		       NSDefaultRunLoopMode,
-		       NSModalPanelRunLoopMode,
-		       NSEventTrackingRunLoopMode, nil]];
+	      modes: @[NSDefaultRunLoopMode, NSModalPanelRunLoopMode, NSEventTrackingRunLoopMode]];
 }
 
 
@@ -624,16 +621,15 @@ static BOOL did_register_for_services;
 
 +(void) registerForServices
 {
-  NSArray *types;
-
   did_register_for_services = YES;
-
-  types = [NSArray arrayWithObjects: NSStringPboardType,
+#ifndef __EMSCRIPTEN__
+  NSArray *types = [NSArray arrayWithObjects: NSStringPboardType,
 		    NSRTFPboardType, NSRTFDPboardType, nil];
 
   NSAssert(NSApp, @"Called before the shared application object was created.");
   [NSApp registerServicesMenuSendTypes: types
 			   returnTypes: types];
+#endif
 }
 
 +(NSDictionary *) defaultTypingAttributes
@@ -642,11 +638,11 @@ static NSDictionary *defaultTypingAttributes;
 
   if (!defaultTypingAttributes)
     {
-      defaultTypingAttributes = [[NSDictionary alloc] initWithObjectsAndKeys:
-	[NSParagraphStyle defaultParagraphStyle], NSParagraphStyleAttributeName,
-	[NSFont userFontOfSize: 0], NSFontAttributeName,
-	[NSColor textColor], NSForegroundColorAttributeName,
-	nil];
+      defaultTypingAttributes = @{
+      	@"NSParagraphStyle": [NSParagraphStyle defaultParagraphStyle],
+      	@"NSFont": [NSFont userFontOfSize: 0],
+      	@"NSColor": [NSColor textColor],
+	    };
     }
   return defaultTypingAttributes;
 }
@@ -733,8 +729,9 @@ If a text view is added to an empty text network, it keeps its attributes.
   if (!self)
     return nil;
 
-  if (!did_register_for_services)
+  if (!did_register_for_services) {
     [[self class] registerForServices];
+  }
 
   _minSize = frameRect.size;
   _maxSize = NSMakeSize(frameRect.size.width, GSHUGE);
@@ -743,10 +740,10 @@ If a text view is added to an empty text network, it keeps its attributes.
   ASSIGN(_insertionPointColor, [NSColor textColor]);
   ASSIGN(_backgroundColor, [NSColor textBackgroundColor]);
   ASSIGN(_defaultParagraphStyle, [NSParagraphStyle defaultParagraphStyle]);
-  _linkTextAttributes = [[NSDictionary alloc] initWithObjectsAndKeys:
-                          [NSNumber numberWithBool: YES], NSUnderlineStyleAttributeName,
-                          [NSColor blueColor], NSForegroundColorAttributeName,
-                          nil];
+  _linkTextAttributes = @{
+                          @"NSUnderline": [NSNumber numberWithBool: YES],
+                          @"NSColor": [NSColor blueColor]
+                          };
 
   _tf.draws_background = YES;
   _tf.is_horizontally_resizable = NO;
@@ -2128,8 +2125,12 @@ here. */
 
 - (NSArray *) validAttributesForMarkedText
 {
+#ifndef __EMSCRIPTEN__
   return [NSArray arrayWithObjects: NSBackgroundColorAttributeName, 
             NSForegroundColorAttributeName, NSFontAttributeName, nil];
+#else
+  return @[NSBackgroundColorAttributeName, NSForegroundColorAttributeName, NSFontAttributeName];
+#endif
 }
 
 - (NSInteger) conversationIdentifier
@@ -2176,10 +2177,28 @@ chain if we can't handle it. */
     }
   if ([self respondsToSelector: aSelector])
     {
+#ifndef __EMSCRIPTEN__
       [self performSelector: aSelector withObject: nil];
-    }
-  else
-    {
+#else 
+
+      IMP msg;
+
+      if (aSelector == 0) {
+        [NSException raise: NSInvalidArgumentException format: @"%@ null selector given", NSStringFromSelector(_cmd)];
+      }
+
+      msg = objc_msg_lookup(self, aSelector);
+      if (!msg) {
+        [NSException raise: NSGenericException format: @"invalid selector '%s' passed to %s", sel_getName(aSelector), sel_getName(_cmd)];
+        return;
+      }
+
+      void (*fp)(id, SEL, id);
+      fp = msg;
+      fp(self, aSelector, nil);
+
+#endif
+    } else {
       NSBeep();
     }
 }
@@ -3157,7 +3176,7 @@ Scroll so that the beginning of the range is visible.
 {
   SEL action = [item action];
 
-  // FIXME The list of validated actions below is far from complete
+  // FIXME: The list of validated actions below is far from complete
 
   if (sel_isEqual(action, @selector(cut:)) || sel_isEqual(action, @selector(delete:)))
     return [self isEditable] && [self selectedRange].length > 0;
@@ -3714,7 +3733,7 @@ afterString in order over charRange.
   Thus, it isn't safe to modify the text storage.
   */
 
-  /* The `official' (the last one the delegate approved of) selected
+  /* The "official" (the last one the delegate approved of) selected
      range before this one. */
   NSRange oldRange;
   /* If the user was interactively changing the selection, the last
@@ -3799,7 +3818,9 @@ afterString in order over charRange.
 	  the pasteboard server. should do this "later"
 	  */
 	  // Store the selected text in the selection pasteboard
+#ifndef __EMSCRIPTEN__ 
 	  [self copySelection];
+#endif
 
 	  if (_tf.is_rich_text)
 	    {
@@ -3859,11 +3880,9 @@ afterString in order over charRange.
     {
       NSDictionary *userInfo;
 
-      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-				 [NSValue valueWithBytes: &oldRange 
-					  objCType: @encode(NSRange)],
-			       NSOldSelectedCharacterRange, nil];
-       
+      userInfo = [NSDictionary dictionaryWithObject: [NSValue valueWithBytes: &oldRange objCType: @encode(NSRange)] 
+        forKey:NSOldSelectedCharacterRange];
+
       [notificationCenter postNotificationName: NSTextViewDidChangeSelectionNotification
 	  object: _notifObject  userInfo: userInfo];
     }
@@ -5061,8 +5080,11 @@ right.)
 - (NSArray *) readablePasteboardTypes
 {
   // get default types, what are they?
-  NSMutableArray *ret = [NSMutableArray arrayWithObjects: NSRulerPboardType,
-    NSColorPboardType, NSFontPboardType, nil];
+  
+  NSMutableArray *ret = [[NSMutableArray allocWithZone: [self zone]] initWithCapacity: 8];
+  [ret addObject: NSRulerPboardType];
+  [ret addObject: NSColorPboardType];
+  [ret addObject: NSFontPboardType];
 
   if (_tf.imports_graphics)
     {
@@ -5465,7 +5487,7 @@ other than copy/paste or dragging. */
 }
 
 
-/**** Event handling ****/
+// MARK: Event handling 
 
 - (void) mouseDown: (NSEvent *)theEvent
 {
@@ -5671,7 +5693,10 @@ other than copy/paste or dragging. */
   }
   
   /* Enter modal loop tracking the mouse */
+#ifndef __EMSCRIPTEN__
   {
+    // TODO: for WebAssembly this implementation conditioned out needs to be changed
+    //       as we cannot spin-up a while loop waiting for a mouse-up to arrive.
     NSUInteger mask = NSLeftMouseDraggedMask | NSLeftMouseUpMask
       | NSPeriodicMask;
     NSEvent *currentEvent;
@@ -5683,7 +5708,7 @@ other than copy/paste or dragging. */
 	  stillSelecting: YES];
 
     currentEvent = [_window nextEventMatchingMask: mask
-		     untilDate: [NSDate distantFuture]
+		     untilDate: [NSDate distantPast]
 		     inMode: NSEventTrackingRunLoopMode
 		     dequeue: YES];
     gettingPeriodic = NO;
@@ -5796,6 +5821,7 @@ other than copy/paste or dragging. */
 	[NSEvent stopPeriodicEvents];
       }
   }
+#endif
 
   NSDebugLog(@"chosenRange. location  = %d, length  = %d\n",
 	     (int)chosenRange.location, (int)chosenRange.length);
@@ -6272,8 +6298,7 @@ or add guards
                                                         selector: @selector(_blink:)
                                                         userInfo: nil
                                                          repeats: YES];
-  [[NSRunLoop currentRunLoop] addTimer: _insertionPointTimer
-                               forMode: NSModalPanelRunLoopMode];
+  [[NSRunLoop currentRunLoop] addTimer: _insertionPointTimer forMode: NSModalPanelRunLoopMode];
   RETAIN(_insertionPointTimer);
 }
 
@@ -6293,8 +6318,9 @@ or add guards
   return rect;
 }
 
-/** Extension method that copies the current selected text to the 
-    special section pasteboard */
+/**
+ * Extension method that copies the current selected text to the special section pasteboard
+ */
 - (void) copySelection
 {
 #if 1

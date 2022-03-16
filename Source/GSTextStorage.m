@@ -57,7 +57,7 @@
 
 #define		SANITY_CHECKS	0
 
-static BOOL     adding;
+static BOOL adding;
 
 /* When caching attributes we make a shallow copy of the dictionary cached,
  * so that it is immutable and safe to cache.
@@ -68,13 +68,13 @@ static BOOL     adding;
  * the equal dictionaries to remove.
  * The solution is to require dictionaries to be identical for removal.
  */
-static inline BOOL
-cacheEqual(id A, id B)
+static inline BOOL cacheEqual(id A, id B)
 {
-  if (YES == adding)
+  if (YES == adding) {
     return [A isEqualToDictionary: B];
-  else
+  } else {
     return A == B;
+  }
 }
 
 #define	GSI_MAP_RETAIN_KEY(M, X)	
@@ -213,8 +213,7 @@ static Class NSStringClass = nil;
  * the copy added to the cache, if it was, count it and return retained
  * object that was there.
  */
-static NSDictionary*
-cacheAttributes(NSDictionary *attrs)
+static NSDictionary* cacheAttributes(NSDictionary *attrs)
 {
   GSIMapNode	node;
 
@@ -223,13 +222,10 @@ cacheAttributes(NSDictionary *attrs)
   node = GSIMapNodeForKey(&attrMap, (GSIMapKey)((id)attrs));
   if (node == 0)
     {
-      /*
-       * Shallow copy of dictionary, without copying objects ... results
-       * in an immutable dictionary that can safely be cached.
-       */
+      // Shallow copy of dictionary, without copying objects ... results
+      // in an immutable dictionary that can safely be cached.
       attrs = [[NSDictionary alloc] initWithDictionary: attrs copyItems: NO];
-      GSIMapAddPair(&attrMap,
-        (GSIMapKey)((id)attrs), (GSIMapVal)(NSUInteger)1);
+      GSIMapAddPair(&attrMap, (GSIMapKey)((id)attrs), (GSIMapVal)(NSUInteger)1);
     }
   else
     {
@@ -252,8 +248,7 @@ unCacheAttributes(NSDictionary *attrs)
     {
       GSIMapNode     node;
 
-      node = GSIMapNodeForKeyInBucket(&attrMap,
-        bucket, (GSIMapKey)((id)attrs));
+      node = GSIMapNodeForKeyInBucket(&attrMap, bucket, (GSIMapKey)((id)attrs));
       if (node != 0)
 	{
 	  if (--node->value.nsu == 0)
@@ -350,6 +345,7 @@ unCacheAttributes(NSDictionary *attrs)
 
 static Class	infCls = 0;
 
+#ifndef __EMSCRIPTEN__
 static SEL infSel;
 static SEL addSel;
 static SEL cntSel;
@@ -369,6 +365,7 @@ static void	(*remImp)();
 #define	INSOBJECT(O,I)	((*insImp)(_infoArray, insSel, (O), (I)))
 #define	OBJECTAT(I)	((*oatImp)(_infoArray, oatSel, (I)))
 #define	REMOVEAT(I)	((*remImp)(_infoArray, remSel, (I)))
+#endif
 
 static inline NSDictionary *attrDict(GSTextInfo* info)
 {
@@ -385,14 +382,18 @@ static void _setup()
 
       GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
 
+#ifndef __EMSCRIPTEN__
       infSel = @selector(newWithZone:value:at:);
       addSel = @selector(addObject:);
       cntSel = @selector(count);
       insSel = @selector(insertObject:atIndex:);
       oatSel = @selector(objectAtIndex:);
       remSel = @selector(removeObjectAtIndex:);
+#endif
 
       infCls = [GSTextInfo class];
+
+#ifndef __EMSCRIPTEN__
       infImp = [infCls methodForSelector: infSel];
 
       a = [NSMutableArray allocWithZone: NSDefaultMallocZone()];
@@ -403,6 +404,7 @@ static void _setup()
       oatImp = [a methodForSelector: oatSel];
       remImp = (void (*)())[a methodForSelector: remSel];
       RELEASE(a);
+#endif
 
       d = [NSDictionary new];
       blank = cacheAttributes(d);
@@ -438,8 +440,8 @@ _setAttributesFrom(
 				  effectiveRange: &range];
     }
   attr = cacheAttributes(attr);
-  info = NEWINFO(z, attr, 0);
-  ADDOBJECT(info);
+  info = [infCls newWithZone: z value: attr at: 0]; // NEWINFO(z, attr, 0);
+  [_infoArray addObject: info]; // ADDOBJECT(info);
   RELEASE(info);
 
   while ((loc = NSMaxRange(range)) < NSMaxRange(aRange))
@@ -447,8 +449,8 @@ _setAttributesFrom(
       attr = [attributedString attributesAtIndex: loc
 				  effectiveRange: &range];
       attr = cacheAttributes(attr);
-      info = NEWINFO(z, attr, loc - aRange.location);
-      ADDOBJECT(info);
+      info = [infCls newWithZone: z value: attr at: (loc - aRange.location)]; // NEWINFO(z, attr, loc - aRange.location);
+      [_infoArray addObject: info]; // ADDOBJECT(info);
       RELEASE(info);
     }
 }
@@ -464,7 +466,7 @@ _attributesAtIndexEffectiveRange(
   unsigned	low, high, used, cnt, nextLoc;
   GSTextInfo	*found = nil;
 
-  used = (*cntImp)(_infoArray, cntSel);
+  used = [_infoArray count]; // (*cntImp)(_infoArray, cntSel);
   NSCAssert(used > 0, NSInternalInconsistencyException);
   high = used - 1;
 
@@ -472,7 +474,7 @@ _attributesAtIndexEffectiveRange(
     {
       if (index == tmpLength)
 	{
-	  found = OBJECTAT(high);
+	  found = [_infoArray objectAtIndex: high]; // OBJECTAT(high);
 	  if (foundIndex != 0)
 	    {
 	      *foundIndex = high;
@@ -496,7 +498,7 @@ _attributesAtIndexEffectiveRange(
   while (low <= high)
     {
       cnt = (low + high) / 2;
-      found = OBJECTAT(cnt);
+      found = [_infoArray objectAtIndex: cnt]; // OBJECTAT(cnt);
       if (found->loc > index)
 	{
 	  high = cnt - 1;
@@ -509,7 +511,7 @@ _attributesAtIndexEffectiveRange(
 	    }
 	  else
 	    {
-	      GSTextInfo	*inf = OBJECTAT(cnt + 1);
+	      GSTextInfo	*inf = [_infoArray objectAtIndex: (cnt + 1)]; // OBJECTAT(cnt + 1);
 
 	      nextLoc = inf->loc;
 	    }
@@ -554,14 +556,14 @@ _attributesAtIndexEffectiveRange(
   unsigned	i;
   unsigned	l = 0;
   unsigned	len = [_textChars length];
-  unsigned	c = (*cntImp)(_infoArray, cntSel);
+  unsigned	c = [_infoArray count]; // (*cntImp)(_infoArray, cntSel);
 
   NSAssert(c > 0, NSInternalInconsistencyException);
-  info = OBJECTAT(0);
+  info = [_infoArray objectAtIndex: 0]; // OBJECTAT(0);
   NSAssert(info->loc == 0, NSInternalInconsistencyException);
   for (i = 1; i < c; i++)
     {
-      info = OBJECTAT(i);
+      info = [_infoArray objectAtIndex: i]; //OBJECTAT(i);
       NSAssert(info->loc > l, NSInternalInconsistencyException);
       NSAssert(info->loc < len, NSInternalInconsistencyException);
       l = info->loc;
@@ -638,8 +640,8 @@ _attributesAtIndexEffectiveRange(
           attributes = blank;
         }
       attributes = cacheAttributes(attributes);
-      info = NEWINFO(z, attributes, 0);
-      ADDOBJECT(info);
+      info = [infCls newWithZone:z value: attributes at: 0]; // NEWINFO(z, attributes, 0);
+      [_infoArray addObject: info]; // ADDOBJECT(info);
       RELEASE(info);
     }
   if (aString == nil)
@@ -707,7 +709,7 @@ _attributesAtIndexEffectiveRange(
 SANITY();
   tmpLength = [_textChars length];
   GS_RANGE_CHECK(range, tmpLength);
-  arraySize = (*cntImp)(_infoArray, cntSel);
+  arraySize = [_infoArray count]; // (*cntImp)(_infoArray, cntSel);
   beginRangeLoc = range.location;
   afterRangeLoc = NSMaxRange(range);
   if (afterRangeLoc < tmpLength)
@@ -739,7 +741,7 @@ SANITY();
 	  /*
 	   * The located range also starts at or after our range.
 	   */
-	  info = OBJECTAT(arrayIndex);
+	  info = [_infoArray objectAtIndex: arrayIndex]; //OBJECTAT(arrayIndex);
 	  info->loc = afterRangeLoc;
 	  arrayIndex--;
 	}
@@ -749,9 +751,9 @@ SANITY();
 	   * The located range starts before our range.
 	   * Create a subrange to go from our end to the end of the old range.
 	   */
-	  info = NEWINFO(z, cacheAttributes(attrs), afterRangeLoc);
+	  info = [infCls newWithZone: z value: cacheAttributes(attrs) at: afterRangeLoc]; // NEWINFO(z, cacheAttributes(attrs), afterRangeLoc);
 	  arrayIndex++;
-	  INSOBJECT(info, arrayIndex);
+	  [_infoArray insertObject: info atIndex: arrayIndex]; // INSOBJECT(info, arrayIndex);
 	  RELEASE(info);
 	  arrayIndex--;
 	}
@@ -766,10 +768,10 @@ SANITY();
    */
   while (arrayIndex > 0)
     {
-      info = OBJECTAT(arrayIndex-1);
+      info = [_infoArray objectAtIndex: (arrayIndex - 1)]; // OBJECTAT(arrayIndex-1);
       if (info->loc < beginRangeLoc)
 	break;
-      REMOVEAT(arrayIndex);
+      [_infoArray removeObjectAtIndex: arrayIndex]; // REMOVEAT(arrayIndex);
       arrayIndex--;
     }
 
@@ -777,7 +779,7 @@ SANITY();
    * Use the location/attribute info in the current slot if possible,
    * otherwise, add a new slot and use that.
    */
-  info = OBJECTAT(arrayIndex);
+  info = [_infoArray objectAtIndex: arrayIndex]; // OBJECTAT(arrayIndex);
   if (info->loc >= beginRangeLoc)
     {
       info->loc = beginRangeLoc;
@@ -801,8 +803,8 @@ SANITY();
   else
     {
       arrayIndex++;
-      info = NEWINFO(z, attributes, beginRangeLoc);
-      INSOBJECT(info, arrayIndex);
+      info = [infCls newWithZone:z value:attributes at:beginRangeLoc]; // NEWINFO(z, attributes, beginRangeLoc);
+      [_infoArray insertObject: info atIndex: arrayIndex]; // INSOBJECT(info, arrayIndex);
       RELEASE(info);
     }
   
@@ -840,7 +842,7 @@ SANITY();
       goto finish;
     }
 
-  arraySize = (*cntImp)(_infoArray, cntSel);
+  arraySize = [_infoArray count]; // (*cntImp)(_infoArray, cntSel);
   if (arraySize == 1)
     {
       /*
@@ -874,17 +876,17 @@ SANITY();
        * we are replacing.  Adjust the start point of a range that
        * extends beyond ours.
        */
-      info = OBJECTAT(arrayIndex);
+      info = [_infoArray objectAtIndex: arrayIndex]; // OBJECTAT(arrayIndex);
       if (info->loc < NSMaxRange(range))
 	{
 	  unsigned int	next = arrayIndex + 1;
 
 	  while (next < arraySize)
 	    {
-	      GSTextInfo	*n = OBJECTAT(next);
+	      GSTextInfo	*n = [_infoArray objectAtIndex: next]; // OBJECTAT(next);
 	      if (n->loc <= NSMaxRange(range))
 		{
-		  REMOVEAT(arrayIndex);
+		  [_infoArray removeObjectAtIndex: arrayIndex]; // REMOVEAT(arrayIndex);
 		  arraySize--;
 		  info = n;
 		}
@@ -900,7 +902,7 @@ SANITY();
 	}
       else
 	{
-	  REMOVEAT(arrayIndex);
+	  [_infoArray removeObjectAtIndex: arrayIndex]; // REMOVEAT(arrayIndex);
 	  arraySize--;
 	}
     }
@@ -922,14 +924,14 @@ SANITY();
 	  arrayIndex--;
 	  if (arrayIndex != 0 || arraySize > 1)
 	    {
-	      REMOVEAT(arrayIndex);
+	      [_infoArray removeObjectAtIndex: arrayIndex]; // REMOVEAT(arrayIndex);
 	      arraySize--;
 	    }
 	  else
 	    {
 	      NSDictionary	*d = blank;
 
-	      info = OBJECTAT(0);
+	      info = [_infoArray objectAtIndex: 0]; // OBJECTAT(0);
 	      unCacheAttributes(info->attrs);
 	      DESTROY(info->attrs);
 	      d = cacheAttributes(d);
@@ -944,7 +946,7 @@ SANITY();
    */
   while (arrayIndex < arraySize)
     {
-      info = OBJECTAT(arrayIndex);
+      info = [_infoArray objectAtIndex: arrayIndex]; // OBJECTAT(arrayIndex);
       info->loc += moveLocations;
       arrayIndex++;
     }

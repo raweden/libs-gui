@@ -284,12 +284,30 @@ static NSString *commandKeyString = @"#";
         {
           // shift mask and not an upper case string?
           shift = (m & NSShiftKeyMask) & ![key isEqualToString: ucKey];
+#ifndef __EMSCRIPTEN__
           key = [NSString stringWithFormat:@"%@%@%@%@%@",
                           (m & NSControlKeyMask) ? controlKeyString : @"",
                           (m & NSAlternateKeyMask) ? alternateKeyString : @"",
                           (shift != NO) ? shiftKeyString : @"",
                           (m & NSCommandKeyMask) ? commandKeyString : @"",
                           key];
+#else
+          // FIXME: wasm variadic args. 
+          NSString *tmp = @"";
+          if (m & NSControlKeyMask) {
+            tmp = [tmp stringByAppendingString: controlKeyString];
+          }
+          if (m & NSAlternateKeyMask) {
+            tmp = [tmp stringByAppendingString: alternateKeyString];
+          }
+          if (shift != NO) {
+            tmp = [tmp stringByAppendingString: shiftKeyString];
+          }
+          if (m & NSCommandKeyMask) {
+            tmp = [tmp stringByAppendingString: commandKeyString];
+          }
+          key = [tmp stringByAppendingString: key];
+#endif
         }
     }
 

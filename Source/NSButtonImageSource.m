@@ -44,7 +44,7 @@ NSMutableDictionary	*sources = nil;
       source = [self alloc];
       source->imageName = [name copy];
       source->images = [NSMutableDictionary new];
-      [sources setObject: source forKey: sources->imageName];
+      [sources setObject: source forKey: source->imageName];
       RELEASE(source);
     }
   return source;

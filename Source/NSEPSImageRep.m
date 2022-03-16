@@ -52,7 +52,7 @@
 
   if (types == nil)
     {
-      types = [[NSArray alloc] initWithObjects: @"eps", nil];
+      types = @[@"eps"];
     }
 
   return types;
@@ -64,7 +64,7 @@
 
   if (types == nil)
     {
-      types = [[NSArray alloc] initWithObjects: NSPostScriptPboardType, nil];
+      types = @[NSPostScriptPboardType];
     }
   
   return types;

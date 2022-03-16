@@ -212,6 +212,7 @@ nsanimation_progressMarkSorter(NSAnimationProgress first, NSAnimationProgress se
 #undef _NSANIMATION_UNLOCK
 #define _NSANIMATION_UNLOCK
 #endif
+
 @implementation NSAnimation
 
 + (void) initialize
@@ -220,12 +221,9 @@ nsanimation_progressMarkSorter(NSAnimationProgress first, NSAnimationProgress se
 
   for (i = 0; i < 5; i++) // compute Bezier curve parameters...
     _gs_animationValueForCurve(&_gs_animationCurveDesc[i], 0.0, 0.0);
-  _NSAnimationDefaultRunLoopModes
-    = [[NSArray alloc] initWithObjects:
-        NSDefaultRunLoopMode,
-        NSModalPanelRunLoopMode,
-        NSEventTrackingRunLoopMode,
-        nil];
+  _NSAnimationDefaultRunLoopModes = @[NSDefaultRunLoopMode,
+                                      NSModalPanelRunLoopMode,
+                                      NSEventTrackingRunLoopMode];
 }
 
 - (void) addProgressMark: (NSAnimationProgress)progress

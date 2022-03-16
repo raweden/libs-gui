@@ -3962,8 +3962,10 @@ static SEL getSel;
   NSInteger i, j;
   NSInteger oldMaxC;
   NSInteger oldMaxR;
+#ifndef __EMSCRIPTEN__
   SEL mkSel = @selector(makeCellAtRow:column:);
   IMP mkImp = [self methodForSelector: mkSel];
+#endif
 
 //NSLog(@"%x - mr: %d mc:%d nr:%d nc:%d r:%d c:%d", (unsigned)self, _maxRows, _maxCols, _numRows, _numCols, row, col);
   if (row < 0)
@@ -4023,7 +4025,11 @@ static SEL getSel;
 		}
 	      else
 		{
+#ifndef __EMSCRIPTEN__
 		  (*mkImp)(self, mkSel, i, j);
+#else
+      [self makeCellAtRow: i column: j];
+#endif
 		}
 	    }
 	}
@@ -4055,7 +4061,11 @@ static SEL getSel;
 		    }
 		  else
 		    {
+#ifndef __EMSCRIPTEN__
 		      (*mkImp)(self, mkSel, i, j);
+#else
+          [self makeCellAtRow: i column: j];
+#endif
 		    }
 		}
 	    }
@@ -4065,7 +4075,11 @@ static SEL getSel;
 		{
 		  _cells[i][j] = nil;
 		  _selectedCells[i][j] = NO;
+#ifndef __EMSCRIPTEN__
 		  (*mkImp)(self, mkSel, i, j);
+#else
+      [self makeCellAtRow: i column: j];
+#endif
 		}
 	    }
 	}

@@ -188,8 +188,7 @@ static NSMutableDictionary *units = nil;
 
       units = [[NSMutableDictionary alloc] init];
       array05 = [NSArray arrayWithObject: [NSNumber numberWithFloat: 0.5]];
-      array052 = [NSArray arrayWithObjects: [NSNumber numberWithFloat: 0.5], 
-                 [NSNumber numberWithFloat: 0.2], nil];
+      array052 = @[[NSNumber numberWithFloat: 0.5], [NSNumber numberWithFloat: 0.2]];
       array2 = [NSArray arrayWithObject: [NSNumber numberWithFloat: 2.0]];
       array10 = [NSArray arrayWithObject: [NSNumber numberWithFloat: 10.0]];
       [self registerUnitWithName: @"Inches" 

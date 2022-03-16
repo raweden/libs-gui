@@ -75,7 +75,8 @@
 
   if (types == nil)
     {
-      types = [[NSArray alloc] initWithObjects: @"ps", @"eps", @"pdf", nil];
+      types = @[@"ps", @"eps", @"pdf"];
+      RETAIN(types);
     }
 
   return types;
@@ -87,9 +88,7 @@
 
   if (types == nil)
     {
-      types = [[NSArray alloc] initWithObjects: NSPostScriptPboardType,
-			       NSPDFPboardType,
-			       nil];
+      types = @[NSPostScriptPboardType, NSPDFPboardType];
     }
   
   return types;

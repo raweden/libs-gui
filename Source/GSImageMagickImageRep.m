@@ -204,6 +204,7 @@
       DestroyExceptionInfo(exception);
 
       types = [[NSArray alloc] initWithArray: array];
+      RETAIN(types);
     }
   
   return types;

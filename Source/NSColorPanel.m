@@ -113,6 +113,7 @@ static int _gs_gui_color_picker_mode = NSWheelModeColorPanel;
   while ((path = [pathEnumerator nextObject]))
     {
       path = [path stringByAppendingPathComponent: @"ColorPickers"];
+      fprintf(stderr, "try find color-picker in '%s'\n", [path UTF8String]);
       bundles = [[NSFileManager defaultManager] directoryContentsAtPath: path];
 
       bundleEnumerator = [bundles objectEnumerator];

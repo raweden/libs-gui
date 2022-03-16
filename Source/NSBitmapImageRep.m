@@ -118,23 +118,22 @@
 {
   static NSArray *types = nil;
 
-  if (types == nil)
-    {
-      types = [[NSArray alloc] initWithObjects:
-	@"tiff", @"tif",
-	@"pnm", @"ppm",
+  if (types == nil) {
+      types = @[
+	      @"tiff", @"tif",
+	      @"pnm", @"ppm",
 #if HAVE_LIBUNGIF || HAVE_LIBGIF
-	@"gif",
+	      @"gif",
 #endif
 #if HAVE_LIBJPEG
-	@"jpeg", @"jpg",
+	      @"jpeg", @"jpg",
 #endif
 #if HAVE_LIBPNG
-	@"png",
+	      @"png",
 #endif
-	@"icns",
-	nil];
-    }
+	      @"icns"];
+      RETAIN(types);
+  }
 
   return types;
 }
@@ -147,7 +146,7 @@
 
   if (types == nil)
     {
-      types = [[NSArray alloc] initWithObjects: NSTIFFPboardType, nil];
+      types = @[ NSTIFFPboardType];
     }
   
   return types;
@@ -2389,7 +2388,7 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                                          bytesPerRow: (NSInteger)rowBytes
                                         bitsPerPixel: (NSInteger)pixelBits
 {
-  if (!pixelBits)
+ if (!pixelBits)
     pixelBits = bps * ((isPlanar) ? 1 : spp);
   if (!rowBytes) 
     rowBytes = ceil((float)_pixelsWide * pixelBits / 8);
@@ -2430,6 +2429,12 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
           SEL setPSel = @selector(setPixel:atX:y:);
           IMP getP = [self methodForSelector: getPSel];
           IMP setP = [new methodForSelector: setPSel];
+#ifdef __EMSCRIPTEN__
+          void (*get_pixel_fp)(id, SEL, NSUInteger[], NSInteger, NSInteger);
+          get_pixel_fp = getP;
+          void (*set_pixel_fp)(id, SEL, NSUInteger[], NSInteger, NSInteger);
+          set_pixel_fp = setP;
+#endif
           NSUInteger pixelData[5];
           NSInteger x, y;
           CGFloat _scale;
@@ -2457,7 +2462,11 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                   NSInteger i;
 
                  //[self getPixel: pixelData atX: x y: y];
-                  getP(self, getPSel, pixelData, x, y);
+#ifndef __EMSCRIPTEN__
+                  getP(self, getPSel, pixelData, x, y)
+#else
+                  get_pixel_fp(self, getPSel, pixelData, x, y);
+#endif
 
                   if (_hasAlpha)
                     {
@@ -2556,7 +2565,11 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                     }
 
                   //[new setPixel: pixelData atX: x y: y];
+#ifndef __EMSCRIPTEN__
                   setP(new, setPSel, pixelData, x, y);
+#else
+                  set_pixel_fp(new, setPSel, pixelData, x, y);
+#endif
                 }
             }
         }
@@ -2571,6 +2584,12 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
           SEL setPSel = @selector(setPixel:atX:y:);
           IMP getP = [self methodForSelector: getPSel];
           IMP setP = [new methodForSelector: setPSel];
+#ifdef __EMSCRIPTEN__
+          void (*get_pixel_fp)(id, SEL, NSUInteger[], NSInteger, NSInteger);
+          get_pixel_fp = getP;
+          void (*set_pixel_fp)(id, SEL, NSUInteger[], NSInteger, NSInteger);
+          set_pixel_fp = setP;
+#endif
           NSUInteger pixelData[4];
           NSInteger x, y;
           CGFloat _scale;
@@ -2600,7 +2619,11 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                   CGFloat fv, fa;
 
                  //[self getPixel: pixelData atX: x y: y];
+#ifndef __EMSCRIPTEN__
                   getP(self, getPSel, pixelData, x, y);
+#else
+                  get_pixel_fp(self, getPSel, pixelData, x, y);
+#endif
 
                   if (_hasAlpha)
                     {
@@ -2682,7 +2705,11 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                     }
 
                   //[new setPixel: pixelData atX: x y: y];
+#ifndef __EMSCRIPTEN__
                   setP(new, setPSel, pixelData, x, y);
+#else
+                  set_pixel_fp(new, setPSel, pixelData, x, y);
+#endif
                 }
             }
         }
@@ -2692,6 +2719,12 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
           SEL setCSel = @selector(setColor:atX:y:);
           IMP getC = [self methodForSelector: getCSel];
           IMP setC = [new methodForSelector: setCSel];
+#ifdef __EMSCRIPTEN__
+          id (*get_color_fp)(id, SEL, NSInteger, NSInteger);
+          get_color_fp = getC;
+          void (*set_color_fp)(id, SEL, id, NSInteger, NSInteger);
+          set_color_fp = setC;
+#endif
           NSInteger i, j;
 
           NSDebugLLog(@"NSImage", @"Slow converting %@ bitmap data to %@", 
@@ -2704,17 +2737,22 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                 {
                   NSColor *c;
                   
+#ifndef __EMSCRIPTEN__
                   //c = [self colorAtX: i y: j];
                   c = getC(self, getCSel, i, j);
                   //[new setColor: c atX: i y: j];
                   setC(new, setCSel, c, i, j);
+#else
+                  c = get_color_fp(self, getCSel, i, j);
+                  set_color_fp(self, getCSel, c, i, j);
+#endif
                 }
               [pool drain];
             }
         }
 
       return AUTORELEASE(new);
-    }  
+    }
 }
 
 @end

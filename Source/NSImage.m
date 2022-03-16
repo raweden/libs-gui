@@ -401,10 +401,10 @@ static GSRepData*
 repd_for_rep(NSArray *_reps, NSImageRep *rep)
 {
   NSEnumerator *enumerator = [_reps objectEnumerator];
-  IMP nextImp = [enumerator methodForSelector: @selector(nextObject)];
+  //IMP nextImp = [enumerator methodForSelector: @selector(nextObject)];
   GSRepData *repd;
 
-  while ((repd = (*nextImp)(enumerator, @selector(nextObject))) != nil)
+  while ((repd = [enumerator nextObject]) != nil)
     {
       if (repd->rep == rep)
         {
@@ -488,6 +488,7 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
     {
       NSString  *path = [[NSBundle mainBundle] pathForImageResource: realName];
 
+      fprintf(" path for resource '%s' ", [path cString]);
       if ([path length] != 0) 
         {
 	  image = [[[[GSTheme theme] imageClass] alloc]
@@ -1195,10 +1196,8 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
 
   // Try to cache / get a cached version of the best rep
   
-  /** 
-   * We only use caching on backends that can efficiently draw a rect from the cache
-   * onto the current graphics context respecting the CTM, which is currently cairo.
-   */
+  // We only use caching on backends that can efficiently draw a rect from the cache
+  // onto the current graphics context respecting the CTM, which is currently cairo.
   if (_cacheMode != NSImageCacheNever &&
       [ctxt supportsDrawGState])
     {
@@ -1377,8 +1376,7 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
    will never be selected as a best rep unless you are drawing on
    a greyscale surface, or all reps in the TIFF are greyscale. 
 */
-- (NSMutableArray *) _bestRep: (NSArray *)reps 
-               withColorMatch: (NSDictionary*)deviceDescription
+- (NSMutableArray *) _bestRep: (NSArray *)reps  withColorMatch: (NSDictionary*)deviceDescription
 {
   NSMutableArray *breps = [NSMutableArray array];
   NSString *deviceColorSpace = [deviceDescription objectForKey: NSDeviceColorSpaceName];
@@ -2158,9 +2156,7 @@ static NSSize GSResolutionOfImageRep(NSImageRep *rep)
 {
   if (nil == imageUnfilteredFileTypes)
     {
-      ASSIGN(imageUnfilteredFileTypes, 
-             iterate_reps_for_types([NSImageRep registeredImageRepClasses],
-                                    @selector(imageUnfilteredFileTypes)));
+      ASSIGN(imageUnfilteredFileTypes,  iterate_reps_for_types([NSImageRep registeredImageRepClasses], @selector(imageUnfilteredFileTypes)));
     }
   return imageUnfilteredFileTypes;
 }
@@ -2170,8 +2166,7 @@ static NSSize GSResolutionOfImageRep(NSImageRep *rep)
   if (nil == imageFileTypes)
     {
       ASSIGN(imageFileTypes,
-             iterate_reps_for_types([NSImageRep registeredImageRepClasses],
-                                    @selector(imageFileTypes)));
+             iterate_reps_for_types([NSImageRep registeredImageRepClasses], @selector(imageFileTypes)));
     }
   return imageFileTypes;
 }
@@ -2181,8 +2176,7 @@ static NSSize GSResolutionOfImageRep(NSImageRep *rep)
   if (nil == imageUnfilteredPasteboardTypes)
     {
       ASSIGN(imageUnfilteredPasteboardTypes,
-             iterate_reps_for_types([NSImageRep registeredImageRepClasses],
-                                    @selector(imageUnfilteredPasteboardTypes)));
+             iterate_reps_for_types([NSImageRep registeredImageRepClasses], @selector(imageUnfilteredPasteboardTypes)));
     }
   return imageUnfilteredPasteboardTypes;
 }
@@ -2192,20 +2186,22 @@ static NSSize GSResolutionOfImageRep(NSImageRep *rep)
   if (nil == imagePasteboardTypes)
     {
       ASSIGN(imagePasteboardTypes,
-             iterate_reps_for_types([NSImageRep registeredImageRepClasses],
-                                    @selector(imagePasteboardTypes)));
+             iterate_reps_for_types([NSImageRep registeredImageRepClasses], @selector(imagePasteboardTypes)));
     }
   return imagePasteboardTypes;
 }
 
 @end
 
-/* For every image rep, call the specified method to obtain an
-   array of objects.  Add these together, with duplicates
-   weeded out.  Used by imageUnfilteredPasteboardTypes,
-   imageUnfilteredFileTypes, etc. */
-static NSArray *
-iterate_reps_for_types(NSArray* imageReps, SEL method)
+/**
+ * @private
+ * 
+ * For every image rep, call the specified method to obtain an
+ * array of objects.  Add these together, with duplicates
+ * weeded out.  Used by imageUnfilteredPasteboardTypes,
+ * imageUnfilteredFileTypes, etc.
+ */
+static NSArray *iterate_reps_for_types(NSArray* imageReps, SEL method)
 {
   NSImageRep *rep;
   NSEnumerator *e;
@@ -2347,9 +2343,12 @@ iterate_reps_for_types(NSArray* imageReps, SEL method)
 {
   NSArray *array;
 
+  fprintf(stderr, "loading '%s' in %s\n", [fileName cString], __PRETTY_FUNCTION__);
+
   array = [NSImageRep imageRepsWithContentsOfFile: fileName];
-  if (array)
+  if (array) {
     [self addRepresentations: array];
+  }
 
   return (array && ([array count] > 0)) ? YES : NO;
 }

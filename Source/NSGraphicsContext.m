@@ -28,7 +28,7 @@
    Boston, MA 02110-1301, USA.
 */
 
-#if     !defined(_NONFRAGILE_ABI)
+#if !defined(_NONFRAGILE_ABI)
 #define EXPOSE_NSThread_IVARS
 #endif
 
@@ -57,19 +57,24 @@
 #import "GNUstepGUI/GSVersion.h"
 #import "GNUstepGUI/GSDisplayServer.h"
 
-/* The memory zone where all global objects are allocated from (Contexts
-   are also allocated from this zone) */
+// The memory zone where all global objects are allocated from (Contexts
+// are also allocated from this zone)
 static NSZone *_globalGSZone = NULL;
 
-/* The current concrete class */
+// The current concrete class
 static Class defaultNSGraphicsContextClass = NULL;
 
-/* Class variable for holding pointers to method functions */
+// Class variable for holding pointers to method functions
 static NSMutableDictionary *classMethodTable;
 
 // Lock for use when creating contexts
 #ifndef GNUSTEP_NO_MULTI_THREAD
 static NSRecursiveLock  *contextLock = nil;
+#endif
+
+#ifdef __EMSCRIPTEN__
+static NSGraphicsContext *_gcontext;
+static NSMutableArray *_gstack;
 #endif
 
 #ifndef GNUSTEP_BASE_LIBRARY
@@ -539,12 +544,15 @@ NSGraphicsContext	*GSCurrentContext(void)
   return usedFonts;
 }
 
-/* Private backend methods */
-/** Private backend method. Typically this is called by the window
-    server to tell the graphics context that it should flush output
-    to a window indicated by the device pointer. The device pointer
-    is an opaque type setup by the context so that it knows which 
-    context and/or buffer should be. */
+// MARK: Private backend methods
+
+/**
+ * Private backend method. Typically this is called by the window
+ * server to tell the graphics context that it should flush output
+ * to a window indicated by the device pointer. The device pointer
+ * is an opaque type setup by the context so that it knows which 
+ * context and/or buffer should be.
+ */
 + (void) handleExposeRect: (NSRect)rect forDriver: (void *)driver
 {
 }
@@ -560,7 +568,11 @@ NSGraphicsContext	*GSCurrentContext(void)
   gsMethodTable methodTable;
   gsMethodTable *mptr;
 
+//#ifndef __EMSCRIPTEN__
 #define	GET_IMP(X) ((void*) [self instanceMethodForSelector: (X)])
+//#else
+//#define GET_IMP(X) ((void*) slowMsgLookup(self, (X)));
+//#endif
 
 /* ----------------------------------------------------------------------- */
 /* Color operations */
@@ -824,6 +836,114 @@ NSGraphicsContext	*GSCurrentContext(void)
  */
   methodTable.NSDrawBitmap___________ = 
     GET_IMP(@selector(NSDrawBitmap:::::::::::));
+
+#if 0
+  fprintf(stderr, "DPScurrentalpha_ is %p\n", methodTable.DPScurrentalpha_);
+  fprintf(stderr, "DPScurrentcmykcolor____ is %p\n", methodTable.DPScurrentcmykcolor____);
+  fprintf(stderr, "DPScurrentgray_ is %p\n", methodTable.DPScurrentgray_);
+  fprintf(stderr, "DPScurrenthsbcolor___ is %p\n", methodTable.DPScurrenthsbcolor___);
+  fprintf(stderr, "DPScurrentrgbcolor___ is %p\n", methodTable.DPScurrentrgbcolor___);
+  fprintf(stderr, "DPSsetalpha_ is %p\n", methodTable.DPSsetalpha_);
+  fprintf(stderr, "DPSsetcmykcolor____ is %p\n", methodTable.DPSsetcmykcolor____);
+  fprintf(stderr, "DPSsetgray_ is %p\n", methodTable.DPSsetgray_);
+  fprintf(stderr, "DPSsethsbcolor___ is %p\n", methodTable.DPSsethsbcolor___);
+  fprintf(stderr, "DPSsetrgbcolor___ is %p\n", methodTable.DPSsetrgbcolor___);
+  fprintf(stderr, "GSSetFillColorspace_ is %p\n", methodTable.GSSetFillColorspace_);
+  fprintf(stderr, "GSSetStrokeColorspace_ is %p\n", methodTable.GSSetStrokeColorspace_);
+  fprintf(stderr, "GSSetFillColor_ is %p\n", methodTable.GSSetFillColor_);
+  fprintf(stderr, "GSSetStrokeColor_ is %p\n", methodTable.GSSetStrokeColor_);
+  fprintf(stderr, "DPSashow___ is %p\n", methodTable.DPSashow___);
+  fprintf(stderr, "DPSawidthshow______ is %p\n", methodTable.DPSawidthshow______);
+  fprintf(stderr, "DPScharpath__ is %p\n", methodTable.DPScharpath__);
+  fprintf(stderr, "DPSshow_ is %p\n", methodTable.DPSshow_);
+  fprintf(stderr, "DPSwidthshow____ is %p\n", methodTable.DPSwidthshow____);
+  fprintf(stderr, "DPSxshow___ is %p\n", methodTable.DPSxshow___);
+  fprintf(stderr, "DPSxyshow___ is %p\n", methodTable.DPSxyshow___);
+  fprintf(stderr, "DPSyshow___ is %p\n", methodTable.DPSyshow___);
+  fprintf(stderr, "GSSetCharacterSpacing_ is %p\n", methodTable.GSSetCharacterSpacing_);
+  fprintf(stderr, "GSSetFont_ is %p\n", methodTable.GSSetFont_);
+  fprintf(stderr, "GSSetFontSize_ is %p\n", methodTable.GSSetFontSize_);
+  fprintf(stderr, "GSGetTextCTM is %p\n", methodTable.GSGetTextCTM);
+  fprintf(stderr, "GSGetTextPosition is %p\n", methodTable.GSGetTextPosition);
+  fprintf(stderr, "GSSetTextCTM_ is %p\n", methodTable.GSSetTextCTM_);
+  fprintf(stderr, "GSSetTextDrawingMode_ is %p\n", methodTable.GSSetTextDrawingMode_);
+  fprintf(stderr, "GSSetTextPosition_ is %p\n", methodTable.GSSetTextPosition_);
+  fprintf(stderr, "GSShowText__ is %p\n", methodTable.GSShowText__);
+  fprintf(stderr, "GSShowGlyphs__ is %p\n", methodTable.GSShowGlyphs__);
+  fprintf(stderr, "GSShowGlyphsWithAdvances__ is %p\n", methodTable.GSShowGlyphsWithAdvances__);
+  fprintf(stderr, "DPSgrestore is %p\n", methodTable.DPSgrestore);
+  fprintf(stderr, "DPSgsave is %p\n", methodTable.DPSgsave);
+  fprintf(stderr, "DPSinitgraphics is %p\n", methodTable.DPSinitgraphics);
+  fprintf(stderr, "DPSsetgstate_ is %p\n", methodTable.DPSsetgstate_);
+  fprintf(stderr, "GSDefineGState is %p\n", methodTable.GSDefineGState);
+  fprintf(stderr, "GSUndefineGState_ is %p\n", methodTable.GSUndefineGState_);
+  fprintf(stderr, "GSReplaceGState_ is %p\n", methodTable.GSReplaceGState_);
+  fprintf(stderr, "DPScurrentflat_ is %p\n", methodTable.DPScurrentflat_);
+  fprintf(stderr, "DPScurrentlinecap_ is %p\n", methodTable.DPScurrentlinecap_);
+  fprintf(stderr, "DPScurrentlinejoin_ is %p\n", methodTable.DPScurrentlinejoin_);
+  fprintf(stderr, "DPScurrentlinewidth_ is %p\n", methodTable.DPScurrentlinewidth_);
+  fprintf(stderr, "DPScurrentmiterlimit_ is %p\n", methodTable.DPScurrentmiterlimit_);
+  fprintf(stderr, "DPScurrentpoint__ is %p\n", methodTable.DPScurrentpoint__);
+  fprintf(stderr, "DPScurrentstrokeadjust_ is %p\n", methodTable.DPScurrentstrokeadjust_);
+  fprintf(stderr, "DPSsetdash___ is %p\n", methodTable.DPSsetdash___);
+  fprintf(stderr, "DPSsetflat_ is %p\n", methodTable.DPSsetflat_);
+  fprintf(stderr, "DPSsethalftonephase__ is %p\n", methodTable.DPSsethalftonephase__);
+  fprintf(stderr, "DPSsetlinecap_ is %p\n", methodTable.DPSsetlinecap_);
+  fprintf(stderr, "DPSsetlinejoin_ is %p\n", methodTable.DPSsetlinejoin_);
+  fprintf(stderr, "DPSsetlinewidth_ is %p\n", methodTable.DPSsetlinewidth_);
+  fprintf(stderr, "DPSsetmiterlimit_ is %p\n", methodTable.DPSsetmiterlimit_);
+  fprintf(stderr, "DPSsetstrokeadjust_ is %p\n", methodTable.DPSsetstrokeadjust_);
+  fprintf(stderr, "DPSconcat_ is %p\n", methodTable.DPSconcat_);
+  fprintf(stderr, "DPSinitmatrix is %p\n", methodTable.DPSinitmatrix);
+  fprintf(stderr, "DPSrotate_ is %p\n", methodTable.DPSrotate_);
+  fprintf(stderr, "DPSscale__ is %p\n", methodTable.DPSscale__);
+  fprintf(stderr, "DPStranslate__ is %p\n", methodTable.DPStranslate__);
+  fprintf(stderr, "GSCurrentCTM is %p\n", methodTable.GSCurrentCTM);
+  fprintf(stderr, "GSSetCTM_ is %p\n", methodTable.GSSetCTM_);
+  fprintf(stderr, "GSConcatCTM_ is %p\n", methodTable.GSConcatCTM_);
+  fprintf(stderr, "DPSarc_____ is %p\n", methodTable.DPSarc_____);
+  fprintf(stderr, "DPSarcn_____ is %p\n", methodTable.DPSarcn_____);
+  fprintf(stderr, "DPSarct_____ is %p\n", methodTable.DPSarct_____);
+  fprintf(stderr, "DPSclip is %p\n", methodTable.DPSclip);
+  fprintf(stderr, "DPSclosepath is %p\n", methodTable.DPSclosepath);
+  fprintf(stderr, "DPScurveto______ is %p\n", methodTable.DPScurveto______);
+  fprintf(stderr, "DPSeoclip is %p\n", methodTable.DPSeoclip);
+  fprintf(stderr, "DPSeofill is %p\n", methodTable.DPSeofill);
+  fprintf(stderr, "DPSfill is %p\n", methodTable.DPSfill);
+  fprintf(stderr, "DPSflattenpath is %p\n", methodTable.DPSflattenpath);
+  fprintf(stderr, "DPSinitclip is %p\n", methodTable.DPSinitclip);
+  fprintf(stderr, "DPSlineto__ is %p\n", methodTable.DPSlineto__);
+  fprintf(stderr, "DPSmoveto__ is %p\n", methodTable.DPSmoveto__);
+  fprintf(stderr, "DPSnewpath is %p\n", methodTable.DPSnewpath);
+  fprintf(stderr, "DPSpathbbox____ is %p\n", methodTable.DPSpathbbox____);
+  fprintf(stderr, "DPSrcurveto______ is %p\n", methodTable.DPSrcurveto______);
+  fprintf(stderr, "DPSrectclip____ is %p\n", methodTable.DPSrectclip____);
+  fprintf(stderr, "DPSrectfill____ is %p\n", methodTable.DPSrectfill____);
+  fprintf(stderr, "DPSrectstroke____ is %p\n", methodTable.DPSrectstroke____);
+  fprintf(stderr, "DPSreversepath is %p\n", methodTable.DPSreversepath);
+  fprintf(stderr, "DPSrlineto__ is %p\n", methodTable.DPSrlineto__);
+  fprintf(stderr, "DPSrmoveto__ is %p\n", methodTable.DPSrmoveto__);
+  fprintf(stderr, "DPSstroke is %p\n", methodTable.DPSstroke);
+  fprintf(stderr, "DPSshfill is %p\n", methodTable.DPSshfill);
+  fprintf(stderr, "GSSendBezierPath_ is %p\n", methodTable.GSSendBezierPath_);
+  fprintf(stderr, "GSRectClipList__ is %p\n", methodTable.GSRectClipList__);
+  fprintf(stderr, "GSRectFillList__ is %p\n", methodTable.GSRectFillList__);
+  fprintf(stderr, "GSCurrentDevice___ is %p\n", methodTable.GSCurrentDevice___);
+  fprintf(stderr, "DPScurrentoffset__ is %p\n", methodTable.DPScurrentoffset__);
+  fprintf(stderr, "GSSetDevice___ is %p\n", methodTable.GSSetDevice___);
+  fprintf(stderr, "DPSsetoffset__ is %p\n", methodTable.DPSsetoffset__);
+  fprintf(stderr, "DPScomposite________ is %p\n", methodTable.DPScomposite________);
+  fprintf(stderr, "DPScompositerect_____ is %p\n", methodTable.DPScompositerect_____);
+  fprintf(stderr, "DPSdissolve________ is %p\n", methodTable.DPSdissolve________);
+  fprintf(stderr, "GSDrawImage__ is %p\n", methodTable.GSDrawImage__);
+  fprintf(stderr, "DPSPrintf__ is %p\n", methodTable.DPSPrintf__);
+  fprintf(stderr, "DPSWriteData__ is %p\n", methodTable.DPSWriteData__);
+  fprintf(stderr, "GSReadRect_ is %p\n", methodTable.GSReadRect_);
+  fprintf(stderr, "NSBeep is %p\n", methodTable.NSBeep);
+  fprintf(stderr, "GSWSetViewIsFlipped_ is %p\n", methodTable.GSWSetViewIsFlipped_);
+  fprintf(stderr, "GSWViewIsFlipped is %p\n", methodTable.GSWViewIsFlipped);
+  fprintf(stderr, "NSDrawBitmap___________ is %p\n", methodTable.NSDrawBitmap___________);
+#endif
 
   mptr = NSZoneMalloc(_globalGSZone, sizeof(gsMethodTable));
   memcpy(mptr, &methodTable, sizeof(gsMethodTable));

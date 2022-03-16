@@ -1781,7 +1781,7 @@ places where we switch.
 
 
 
-/***** Layout handling *****/
+// MARK: Layout handling 
 
 @implementation GSLayoutManager (LayoutHelpers)
 
@@ -1854,8 +1854,7 @@ places where we switch.
   NSRect prev;
   BOOL delegate_responds;
 
-  delegate_responds = [_delegate respondsToSelector:
-    @selector(layoutManager:didCompleteLayoutForTextContainer:atEnd:)];
+  delegate_responds = [_delegate respondsToSelector: @selector(layoutManager:didCompleteLayoutForTextContainer:atEnd:)];
 
   next = layout_glyph;
   for (i = 0, tc = textcontainers; i < num_textcontainers; i++, tc++)
@@ -1940,8 +1939,7 @@ places where we switch.
   NSRect prev;
   BOOL delegate_responds;
 
-  delegate_responds = [_delegate respondsToSelector:
-    @selector(layoutManager:didCompleteLayoutForTextContainer:atEnd:)];
+  delegate_responds = [_delegate respondsToSelector:@selector(layoutManager:didCompleteLayoutForTextContainer:atEnd:)];
 
   next = layout_glyph;
   for (i = 0, tc = textcontainers; i <= cindex; i++, tc++)
@@ -2884,7 +2882,7 @@ forStartOfGlyphRange: (NSRange)glyphRange
 
 @implementation GSLayoutManager
 
-- init
+-(id) init
 {
   if (!(self = [super init]))
     return nil;

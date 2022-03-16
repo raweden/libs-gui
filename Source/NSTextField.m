@@ -391,6 +391,7 @@ static Class textFieldCellClass;
 //
 - (void) mouseDown: (NSEvent*)theEvent
 {
+  fprintf(stderr, "did enter at %s\n", __PRETTY_FUNCTION__);
   if ([self isSelectable] == NO || [self isEnabled] == NO)
     {
       if (_next_responder)

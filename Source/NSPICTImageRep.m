@@ -37,7 +37,8 @@
 
   if (types == nil)
     {
-      types = [[NSArray alloc] initWithObjects: @"pct", @"pict", nil];
+      types = @[@"pct", @"pict"];
+      RETAIN(types);
     }
 
   return types;
@@ -49,7 +50,7 @@
 
   if (types == nil)
     {
-      types = [[NSArray alloc] initWithObjects: NSPICTPboardType, nil];
+      types = @[NSPICTPboardType];
     }
   
   return types;

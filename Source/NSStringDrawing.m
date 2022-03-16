@@ -109,8 +109,9 @@ static void init_string_drawing(void)
   NSLayoutManager *layoutManager;
   NSTextContainer *textContainer;
 
-  if (did_init)
+  if (did_init) {
     return;
+  }
   did_init = YES;
 
 #ifdef STATS
@@ -122,12 +123,13 @@ static void init_string_drawing(void)
       textStorage = [[NSTextStorage alloc] init];
       layoutManager = [[NSLayoutManager alloc] init];
       [textStorage addLayoutManager: layoutManager];
-      [layoutManager release];
+      //[layoutManager release];
       textContainer = [[NSTextContainer alloc]
 			initWithContainerSize: NSMakeSize(10, 10)];
       [textContainer setLineFragmentPadding: 0];
       [layoutManager addTextContainer: textContainer];
-      [textContainer release];
+      //[textContainer release];
+      [textStorage retain];
 
       cache[i].used = 0;
       cache[i].textStorage = textStorage;
@@ -306,13 +308,10 @@ static inline void prepare_string(NSString *string, NSDictionary *attributes)
   NSTextStorage *scratchTextStorage = scratch->textStorage;
 
   [scratchTextStorage beginEditing];
-  [scratchTextStorage replaceCharactersInRange: NSMakeRange(0, [scratchTextStorage length])
-                                    withString: string];
-  if ([string length])
-    {
-      [scratchTextStorage setAttributes: attributes
-			  range: NSMakeRange(0, [string length])];
-    }
+  [scratchTextStorage replaceCharactersInRange: NSMakeRange(0, [scratchTextStorage length]) withString: string];
+  if ([string length]) {
+    [scratchTextStorage setAttributes: attributes range: NSMakeRange(0, [string length])];
+  }
   [scratchTextStorage endEditing];
 }
 
@@ -426,10 +425,8 @@ static void draw_in_rect(cache_t *c, NSRect rect)
       [NSFont _setFontFlipHack: YES];
     }
   
-  [c->layoutManager drawBackgroundForGlyphRange: r
-                                        atPoint: rect.origin];
-  [c->layoutManager drawGlyphsForGlyphRange: r
-                                    atPoint: rect.origin];
+  [c->layoutManager drawBackgroundForGlyphRange: r atPoint: rect.origin];
+  [c->layoutManager drawGlyphsForGlyphRange: r atPoint: rect.origin];
   
   if (need_flip)
     {
@@ -570,12 +567,14 @@ static void draw_in_rect(cache_t *c, NSRect rect)
   // FIXME: This ignores options
   cache_t *c;
 
-  if (rect.size.width <= 0 || rect.size.height <= 0)
+  if (rect.size.width <= 0 || rect.size.height <= 0) {
+    fprintf(stderr, "aborting call at %s due to rect { %f, %f %f, %f} is zero \n", __PRETTY_FUNCTION__, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
     return;
+  }
   
   cache_lock();
   NS_DURING
-    {    
+    { 
       prepare_string(self, attrs);
       c = cache_lookup(YES, rect.size, use_screen_fonts());
       draw_in_rect(c, rect);

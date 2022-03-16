@@ -237,7 +237,7 @@ static NSString *GSColorWellDidBecomeExclusiveNotification =
 	  action = [aDecoder decodeObjectForKey: @"NSAction"];
 	  _action = NSSelectorFromString(action);
 	  [self registerForDraggedTypes:
-		  [NSArray arrayWithObjects: NSColorPboardType, nil]];
+		  [NSArray arrayWithObject: NSColorPboardType]];
 	}
       else
 	{
@@ -249,7 +249,7 @@ static NSString *GSColorWellDidBecomeExclusiveNotification =
 	  TEST_RELEASE(_target);
 	  [aDecoder decodeValueOfObjCType: @encode(SEL) at: &_action];
 	  [self registerForDraggedTypes:
-		  [NSArray arrayWithObjects: NSColorPboardType, nil]];
+		  [NSArray arrayWithObject: NSColorPboardType]];
 	}
     }
   return self;
@@ -264,8 +264,7 @@ static NSString *GSColorWellDidBecomeExclusiveNotification =
       _is_active = NO;
       _the_color = RETAIN([NSColor blackColor]);
 
-      [self registerForDraggedTypes:
-	[NSArray arrayWithObjects: NSColorPboardType, nil]];
+      [self registerForDraggedTypes: [NSArray arrayWithObject: NSColorPboardType]];
     }
   return self;
 }

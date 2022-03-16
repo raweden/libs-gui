@@ -287,6 +287,7 @@ fail anyway).
 */
 static void init_font_roles(void)
 {
+  fprintf(stderr, "enter at %s\n", __PRETTY_FUNCTION__);
   GSFontEnumerator *e = [GSFontEnumerator sharedEnumerator];
 
   font_roles[RoleSystemFont].defaultFont = [e defaultSystemFontName];
@@ -351,8 +352,7 @@ static NSFont *getNSFont(CGFloat fontSize, int role)
       if (font_roles[role].cachedFont)
         return AUTORELEASE(RETAIN(font_roles[role].cachedFont));
 
-      fontSize = [defaults floatForKey:
-        [NSString stringWithFormat: @"%@Size", font_roles[role].key]];
+      fontSize = [defaults floatForKey:[font_roles[role].key stringByAppendingString: @"Size"]];
 
       if (!fontSize)
         fontSize = [NSFont systemFontSize];
@@ -371,6 +371,7 @@ static NSFont *getNSFont(CGFloat fontSize, int role)
   if (font == nil)
     {
       /* Warn using the role that specified the invalid font. */
+      fprintf(stderr, "The font specified for %s, %s, can't be found.\n", [font_roles[i].key cString], [fontName cString]);
       NSLog(@"The font specified for %@, %@, can't be found.",
         font_roles[i].key, fontName);
 
@@ -422,8 +423,7 @@ static void setNSFont(NSString *key, NSFont *font)
   int i;
 
   [defaults setObject: [font fontName] forKey: key];
-  [defaults setObject: [NSNumber numberWithFloat: [font pointSize]]
-            forKey: [NSString stringWithFormat: @"%@Size",key]];
+  [defaults setObject: [NSNumber numberWithFloat: [font pointSize]] forKey: [key stringByAppendingString: @"Size"]];
   
   for (i = 1; i < RoleMax; i++)
     {

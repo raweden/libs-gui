@@ -156,9 +156,7 @@ invertComparison (NSComparisonResult comparison)
 
 @end
 
-/*
- * The Memory Panel code
- */
+// MARK: The Memory Panel code
 
 static GSMemoryPanel *sharedGSMemoryPanel = nil;
 

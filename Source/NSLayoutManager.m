@@ -1372,6 +1372,9 @@ container
 -(void) drawBackgroundForGlyphRange: (NSRange)range
 			    atPoint: (NSPoint)containerOrigin
 {
+#ifdef DEBUG_STRING_DRAW
+  fprintf(stderr, "did enter at %s\n", __PRETTY_FUNCTION__);
+#endif
   NSTextContainer *textContainer;
   glyph_run_t *glyph_run;
   unsigned int glyph_pos, char_pos, first_char_pos;
@@ -1569,6 +1572,9 @@ attachmentSize(linefrag_t *lf, NSUInteger glyphIndex)
 -(void) drawGlyphsForGlyphRange: (NSRange)range
 			atPoint: (NSPoint)containerOrigin
 {
+#ifdef DEBUG_STRING_DRAW
+  fprintf(stderr, "did enter at %s\n", __PRETTY_FUNCTION__);
+#endif
   int i, j;
   textcontainer_t *tc;
   linefrag_t *lf;

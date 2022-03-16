@@ -371,8 +371,7 @@ implement, so we can't do that. */
 {
   NSArray *nativeTypes = [self imageUnfilteredFileTypes];
   NSEnumerator *enumerator = [nativeTypes objectEnumerator];
-  NSMutableArray *filteredTypes = [[NSMutableArray alloc] initWithCapacity: 
-                                                            [nativeTypes count]];
+  NSMutableArray *filteredTypes = [[NSMutableArray alloc] initWithCapacity: [nativeTypes count]];
   NSString *type;
   
   while ((type = [enumerator nextObject]) != nil)

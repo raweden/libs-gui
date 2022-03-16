@@ -47,6 +47,10 @@
 #import "AppKit/NSWindow.h"
 #import "AppKit/PSOperators.h"
 
+#ifdef __EMSCRIPTEN__
+#import "wasm-Appkit.h"
+#endif
+
 @interface GSCacheW : NSWindow
 @end
 
@@ -97,11 +101,21 @@
 		   NSStringFromSize(aSize), (long int) pixelsWide, (long int) pixelsHigh];
     }
 
+  // FIXME: __EMSCRIPTEN__ set a flag here, which can be used in -[WasmCairoDisplayServer window::::] to not create a surface in the host.
+
+#ifdef __EMSCRIPTEN__
+  _setCreatingNSWindowForImageCache(YES);
+#endif
+
   // FIXME: Only create new window when separate is YES
   win = [[GSCacheW alloc] initWithContentRect: NSMakeRect(0, 0, pixelsWide, pixelsHigh)
 				    styleMask: NSBorderlessWindowMask | NSUnscaledWindowMask
 				      backing: NSBackingStoreRetained
 					defer: NO];
+
+#ifdef __EMSCRIPTEN__
+  _setCreatingNSWindowForImageCache(NO);
+#endif
  
   [[win contentView] setBoundsSize: NSMakeSize(aSize.width, aSize.height)];
   
