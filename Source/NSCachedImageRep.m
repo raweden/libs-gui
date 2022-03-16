@@ -48,7 +48,7 @@
 #import "AppKit/PSOperators.h"
 
 #ifdef __EMSCRIPTEN__
-#import "wasm-Appkit.h"
+#import "wasm/wasm-Appkit.h"
 #endif
 
 @interface GSCacheW : NSWindow
