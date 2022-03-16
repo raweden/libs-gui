@@ -122,7 +122,9 @@
 
 @end
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSRecursiveLock *bindingLock = nil;
+#endif
 static NSMapTable *classTable = NULL;      //available bindings
 static NSMapTable *objectTable = NULL;     //bound bindings
 
@@ -145,7 +147,9 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
 {
   if (self == [GSKeyValueBinding class])
     {
+#ifndef GNUSTEP_NO_MULTI_THREAD
       bindingLock = [GSLazyRecursiveLock new];
+#endif
       classTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
           NSObjectMapValueCallBacks, 128);
       objectTable = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
@@ -157,7 +161,10 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
 {
   NSMutableArray *bindings;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock lock];
+#endif
+
   bindings = (NSMutableArray *)NSMapGet(classTable, (void*)clazz);
   if (bindings == nil)
     {
@@ -166,7 +173,10 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
       RELEASE(bindings);
     }
   [bindings addObject: binding];
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock unlock];
+#endif
 }
 
 + (NSArray *) exposedBindingsForClass: (Class)clazz
@@ -176,9 +186,14 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
   if (!classTable)
     return nil;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock lock];
+#endif
   tmp = NSMapGet(classTable, (void*)clazz);
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock unlock];
+#endif
   
   return tmp;
 }
@@ -192,13 +207,19 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
   if (!objectTable)
     return nil;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock lock];
+#endif
+
   bindings = (NSMutableDictionary *)NSMapGet(objectTable, (void *)anObject);
   if (bindings != nil)
     {
       theBinding = (GSKeyValueBinding*)[bindings objectForKey: binding];
     }
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock unlock];
+#endif
 
   return theBinding;
 }
@@ -226,7 +247,10 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
   if (!objectTable)
     return;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock lock];
+#endif
+
   bindings = (NSMutableDictionary *)NSMapGet(objectTable, (void *)anObject);
   if (bindings != nil)
     {
@@ -239,7 +263,10 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
           [bindings setValue: nil forKey: binding];
         }
     }
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock unlock];
+#endif
 }
 
 + (void) unbindAllForObject: (id)anObject
@@ -251,7 +278,10 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
   if (!objectTable)
     return;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock lock];
+#endif
+
   list = (NSDictionary *)NSMapGet(objectTable, (void *)anObject);
   if (list != nil)
     {
@@ -264,7 +294,10 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
         }
       NSMapRemove(objectTable, (void *)anObject);
     }
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock unlock];
+#endif
 }
 
 - (id) initWithBinding: (NSString *)binding 
@@ -298,7 +331,10 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
         options: NSKeyValueObservingOptionNew
         context: binding];
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock lock];
+#endif
+
   bindings = (NSMutableDictionary *)NSMapGet(objectTable, (void *)source);
   if (bindings == nil)
     {
@@ -307,7 +343,10 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
       RELEASE(bindings);
     }
   [bindings setObject: self forKey: name];
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock unlock];
+#endif
 
   [self setValueFor: binding];
 
@@ -523,14 +562,20 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
   if (!objectTable)
     return;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
  [bindingLock lock];
+#endif
+
   bindings = (NSDictionary *)NSMapGet(objectTable, (void *)src);
   if (!bindings)
     return;
 
-  res = GSBindingResolveMultipleValueBool(binding, bindings,
-                                          GSBindingOperationOr);
+  res = GSBindingResolveMultipleValueBool(binding, bindings, GSBindingOperationOr);
+  
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock unlock];
+#endif
+  
   [src setValue: [NSNumber numberWithBool: res] forKey: binding];
 }
 
@@ -554,14 +599,20 @@ void GSBindingInvokeAction(NSString *targetKey, NSString *argumentKey,
   if (!objectTable)
     return;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock lock];
+#endif
+
   bindings = (NSDictionary *)NSMapGet(objectTable, (void *)src);
   if (!bindings)
     return;
 
-  res = GSBindingResolveMultipleValueBool(binding, bindings,
-                                          GSBindingOperationAnd);
+  res = GSBindingResolveMultipleValueBool(binding, bindings, GSBindingOperationAnd);
+  
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [bindingLock unlock];
+#endif
+  
   [src setValue: [NSNumber numberWithBool: res] forKey: binding];
 }
 

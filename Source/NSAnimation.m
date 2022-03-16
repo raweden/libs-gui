@@ -30,7 +30,7 @@
 #import <Foundation/NSDebug.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSException.h>
-#import <Foundation/NSLock.h>
+#import <Foundation/NSLock.h> // TOOD: needed?
 #import <Foundation/NSNotification.h>
 #import <Foundation/NSRunLoop.h>
 #import <Foundation/NSThread.h>
@@ -204,6 +204,14 @@ nsanimation_progressMarkSorter(NSAnimationProgress first, NSAnimationProgress se
     [_isAnimatingLock unlock];      \
   }
 
+#ifdef GNUSTEP_NO_MULTI_THREAD
+#undef _NSANIMATION_LOCKING_SETUP
+#define _NSANIMATION_LOCKING_SETUP
+#undef _NSANIMATION_LOCK
+#define _NSANIMATION_LOCK
+#undef _NSANIMATION_UNLOCK
+#define _NSANIMATION_UNLOCK
+#endif
 @implementation NSAnimation
 
 + (void) initialize
@@ -438,7 +446,9 @@ nsanimation_progressMarkSorter(NSAnimationProgress first, NSAnimationProgress se
         (BOOL (*)(id,SEL,NSAnimation*)) NULL;
       
       _isThreaded = NO;
+#ifndef GNUSTEP_NO_MULTI_THREAD
       _isAnimatingLock = [GSLazyRecursiveLock new];
+#endif
     }
   return self;
 }
@@ -450,7 +460,9 @@ nsanimation_progressMarkSorter(NSAnimationProgress first, NSAnimationProgress se
   c->_progressMarks = GSIArrayCopyWithZone(_progressMarks, zone);
   c->_animator = nil;
   c->_isANewAnimatorNeeded = YES;
+#ifndef GNUSTEP_NO_MULTI_THREAD
   c->_isAnimatingLock = [GSLazyRecursiveLock new];
+#endif
   return c;
 }
 
@@ -473,7 +485,9 @@ nsanimation_progressMarkSorter(NSAnimationProgress first, NSAnimationProgress se
   [self clearStopAnimation];
 
   TEST_RELEASE(_animator);
+#ifndef GNUSTEP_NO_MULTI_THREAD
   RELEASE(_isAnimatingLock);
+#endif
 
   [super dealloc];
 }

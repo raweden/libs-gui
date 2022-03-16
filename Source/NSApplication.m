@@ -983,9 +983,14 @@ static BOOL _isAutolaunchChecked = NO;
    * The appkit should run in the main thread ... so to be sure we perform
    * all the initialisation there.
    */
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [self performSelectorOnMainThread: @selector(_init)
 			 withObject: self
 		      waitUntilDone: YES];
+#else
+  [self _init];
+#endif
+  
   return NSApp;
 }
 

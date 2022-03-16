@@ -60,7 +60,11 @@
 #import "GSGuiPrivate.h"
 
 #define MAX_ALPHA_VALUE 100.0
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSLock *_gs_gui_color_panel_lock = nil;
+#endif
+
 static NSColorPanel *_gs_gui_color_panel = nil;
 static int _gs_gui_color_picker_mask = NSColorPanelAllModesMask;
 static int _gs_gui_color_picker_mode = NSWheelModeColorPanel;
@@ -433,7 +437,9 @@ static int _gs_gui_color_picker_mode = NSWheelModeColorPanel;
     {
       // Initial version
       [self setVersion: 1];
+#ifndef GNUSTEP_NO_MULTI_THREAD
       _gs_gui_color_panel_lock = [NSLock new];
+#endif
     }
 }
 
@@ -443,7 +449,9 @@ static int _gs_gui_color_picker_mode = NSWheelModeColorPanel;
 {
   if (_gs_gui_color_panel == nil)
     {
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_gs_gui_color_panel_lock lock];
+#endif
       if (!_gs_gui_color_panel)
         {
           //  if (![NSBundle loadNibNamed: @"ColorPanel" owner: self]);
@@ -452,7 +460,9 @@ static int _gs_gui_color_picker_mode = NSWheelModeColorPanel;
 	  _gs_gui_color_panel = [self alloc];
 	  [_gs_gui_color_panel init];
         }
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_gs_gui_color_panel_lock unlock];
+#endif
     }
 
   return _gs_gui_color_panel;

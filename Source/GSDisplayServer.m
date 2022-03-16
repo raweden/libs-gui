@@ -59,8 +59,10 @@ static Class defaultServerClass = NULL;
 /* Maps windows to a server */
 static NSMapTable *windowmaps = NULL;
 
-/* Lock for use when creating contexts */
+#ifndef GNUSTEP_NO_MULTI_THREAD
+// Lock for use when creating contexts 
 static NSRecursiveLock  *serverLock = nil;
+#endif
 
 static NSString *NSCurrentServerThreadKey;
 static GSDisplayServer *currentServer = nil;
@@ -122,20 +124,24 @@ GSCurrentServer(void)
 
 + (void) initialize
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   if (serverLock == nil)
     {
       [gnustep_global_lock lock];
       if (serverLock == nil)
         {
           serverLock = [NSRecursiveLock new];
+#endif
           _globalGSZone = NSDefaultMallocZone();
           defaultServerClass = [GSDisplayServer class];
           NSCurrentServerThreadKey  = @"NSCurrentServerThreadKey";
           windowmaps = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
                                         NSNonOwnedPointerMapValueCallBacks, 20);
+#ifndef GNUSTEP_NO_MULTI_THREAD
         }
       [gnustep_global_lock unlock];
     }
+#endif
 }
 
 /** Set the concrete subclass that will provide the device dependant
@@ -973,6 +979,8 @@ GSCurrentServer(void)
 {
   NSUInteger pos = 0;	/* Position in queue scanned so far	*/
   NSRunLoop *loop = nil;
+
+  fprintf(stderr, "did enter at %s\n", __PRETTY_FUNCTION__);
 
   do
     {

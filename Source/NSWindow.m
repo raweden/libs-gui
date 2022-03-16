@@ -49,7 +49,7 @@
 #import <Foundation/NSValue.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSSet.h>
-#import <Foundation/NSLock.h>
+#import <Foundation/NSLock.h>   // TODO: needed?
 #import <Foundation/NSUserDefaults.h>
 #import <Foundation/NSUndoManager.h>
 

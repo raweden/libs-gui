@@ -145,7 +145,10 @@ static void	(*invalidateImp)(NSView*, SEL);
  *	performance of this mechanism to be an issue.
  */
 static NSMapTable	*typesMap = 0;
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSLock		*typesLock = nil;
+#endif
 
 /*
  * This is the only external interface to the drag types info.
@@ -155,18 +158,29 @@ GSGetDragTypes(NSView *obj)
 {
   NSArray	*t;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [typesLock lock];
+#endif
+
   t = (NSArray*)NSMapGet(typesMap, (void*)(gsaddr)obj);
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [typesLock unlock];
+#endif
+  
   return t;
 }
 
 static void
 GSRemoveDragTypes(NSView* obj)
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [typesLock lock];
+#endif
   NSMapRemove(typesMap, (void*)(gsaddr)obj);
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [typesLock unlock];
+#endif
 }
 
 static NSArray*
@@ -191,12 +205,14 @@ GSSetDragTypes(NSView* obj, NSArray *types)
     {
       RELEASE(strings[i]);
     }
-  /*
-   * Store it.
-   */
+  // Store it.
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [typesLock lock];
+#endif
   NSMapInsert(typesMap, (void*)(gsaddr)obj, (void*)(gsaddr)t);
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [typesLock unlock];
+#endif
   return t;
 }
 
@@ -540,9 +556,10 @@ GSSetDragTypes(NSView* obj, NSArray *types)
       Class	matrixClass = [NSAffineTransform class];
       NSAffineTransformStruct	ats = { 1, 0, 0, -1, 0, 1 };
 
-      typesMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-                NSObjectMapValueCallBacks, 0);
+      typesMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks, NSObjectMapValueCallBacks, 0);
+#ifndef GNUSTEP_NO_MULTI_THREAD
       typesLock = [NSLock new];
+#endif
 
       preSel = @selector(prependTransform:);
       invalidateSel = @selector(_invalidateCoordinates);

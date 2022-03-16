@@ -44,7 +44,9 @@
 #import <GNUstepGUI/GSFontInfo.h>
 
 static NSMutableDictionary *_availableFontCollections = nil;
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSLock *_fontCollectionLock = nil;
+#endif
 
 /*
  * Private functions...
@@ -75,12 +77,16 @@ static NSLock *_fontCollectionLock = nil;
  */
 + (void) _loadAvailableFontCollections
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_fontCollectionLock lock];
+#endif
 
   if (_availableFontCollections != nil)
     {
       // Nothing to do ... already loaded
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_fontCollectionLock unlock];
+#endif
     }
   else
     {
@@ -130,7 +136,9 @@ static NSLock *_fontCollectionLock = nil;
 	    }
 	}
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_fontCollectionLock unlock];
+#endif
     }
 }
 
@@ -218,12 +226,16 @@ static NSLock *_fontCollectionLock = nil;
   success = [self _writeToFileAtPath: path];
   if (success)
     {
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_fontCollectionLock lock];
+#endif
       if ([[_availableFontCollections allValues] containsObject: self] == NO)
         {
           [_availableFontCollections setObject: self forKey: [self _name]];
         }
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_fontCollectionLock unlock];
+#endif
     }
 
   return success;
@@ -268,11 +280,16 @@ static NSLock *_fontCollectionLock = nil;
       // Remove the file
       result = [[NSFileManager defaultManager] removeFileAtPath: path
                                                         handler: nil];
-
-      // Remove the collection from the global list of font collections
+      
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_fontCollectionLock lock];
+#endif
+      // Remove the collection from the global list of font collections
       [_availableFontCollections removeObjectForKey: [self _name]];
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_fontCollectionLock unlock];
+#endif
 
       // Reset file name
       [self _setFullFileName: nil];

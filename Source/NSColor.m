@@ -2093,11 +2093,15 @@ systemColorWithName(NSString *name)
 @implementation GSNamedColor
 
 static	NSMutableDictionary	*namedColors = nil;
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static	NSRecursiveLock		*namedColorLock = nil;
+#endif
 
 + (void) initialize
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   namedColorLock = [NSRecursiveLock new];
+#endif
   namedColors = [NSMutableDictionary new];
 }
 
@@ -2109,7 +2113,9 @@ static	NSRecursiveLock		*namedColorLock = nil;
 
   _catalog_name = [listName copy];
   _color_name = [colorName copy];
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [namedColorLock lock];
+#endif
   d = [namedColors objectForKey: _catalog_name];
   if (d == nil)
     {
@@ -2127,7 +2133,9 @@ static	NSRecursiveLock		*namedColorLock = nil;
       [self release];
       self = (GSNamedColor*)[c retain];
     }
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [namedColorLock unlock];
+#endif
   return self;
 }
 
@@ -2234,7 +2242,9 @@ static	NSRecursiveLock		*namedColorLock = nil;
   // Is there a cache hit?
   // FIXME How would we detect that the cache has become invalid by a
   // change to the colour list?
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [namedColorLock lock];
+#endif
   if (NO == [colorSpace isEqualToString: _cached_name_space])
     {
       list = [NSColorList colorListNamed: _catalog_name];
@@ -2248,17 +2258,23 @@ static	NSRecursiveLock		*namedColorLock = nil;
       ASSIGN(_cached_name_space, colorSpace);
     }
   real = [[_cached_color retain] autorelease];
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [namedColorLock unlock];
+#endif
 
   return real;
 }
 
 - (void) recache
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [namedColorLock lock];
+#endif
   DESTROY(_cached_name_space);
   DESTROY(_cached_color);
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [namedColorLock unlock];
+#endif
 }
 
 //

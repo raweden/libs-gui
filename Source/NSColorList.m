@@ -48,7 +48,10 @@
 // The list of available color lists is cached and re-loaded only
 // after a time.
 static NSMutableArray *_availableColorLists = nil;
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSLock *_colorListLock = nil;
+#endif
 
 static NSColorList *defaultSystemColorList = nil;
 static NSColorList *themeColorList = nil;
@@ -86,7 +89,9 @@ static NSColorList *themeColorList = nil;
   if (self == [NSColorList class])
     {
       [self setVersion: 2];
+#ifndef GNUSTEP_NO_MULTI_THREAD
       _colorListLock = (NSLock *)[NSRecursiveLock new];
+#endif
     }
 }
 
@@ -98,11 +103,15 @@ static NSColorList *themeColorList = nil;
   NSArray	*a;
 
   // Serialize access to color list
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_colorListLock lock];
+#endif
   [NSColor whiteColor]; // NB This ensures that the System color list is defined
   [NSColorList _loadAvailableColorLists: nil];
   a =  [NSArray arrayWithArray: _availableColorLists];
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_colorListLock unlock];
+#endif
 
   return a;
 }
@@ -116,7 +125,9 @@ static NSColorList *themeColorList = nil;
   NSEnumerator *e;
 
   // Serialize access to color list
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_colorListLock lock];
+#endif
 
   [NSColorList _loadAvailableColorLists: nil];
   e = [_availableColorLists objectEnumerator];
@@ -130,7 +141,9 @@ static NSColorList *themeColorList = nil;
 	}
     }
   
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_colorListLock unlock];
+#endif
 
   return AUTORELEASE(r);
 }
@@ -346,11 +359,15 @@ static NSColorList *themeColorList = nil;
   n = [NSNotification notificationWithName: NSColorListDidChangeNotification
 				    object: self
 				  userInfo: nil];
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [[NSNotificationQueue defaultQueue] 
     enqueueNotification: n
 	   postingStyle: NSPostASAP
 	   coalesceMask: NSNotificationCoalescingOnSender
 	       forModes: nil];
+#else 
+  [[NSNotificationCenter defaultCenter] postNotification: n];
+#endif
 }
 
 - (void) removeColorWithKey: (NSString *)key
@@ -367,35 +384,42 @@ static NSColorList *themeColorList = nil;
   n = [NSNotification notificationWithName: NSColorListDidChangeNotification
 				    object: self
 				  userInfo: nil];
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [[NSNotificationQueue defaultQueue] 
     enqueueNotification: n
 	   postingStyle: NSPostASAP
 	   coalesceMask: NSNotificationCoalescingOnSender
 	       forModes: nil];
+#else 
+  [[NSNotificationCenter defaultCenter] postNotification: n];
+#endif
 }
 
-- (void) setColor: (NSColor *)aColor
-	   forKey: (NSString *)key
+- (void) setColor: (NSColor *)aColor forKey: (NSString *)key
 {
   NSNotification	*n;
 
-  if (_is_editable == NO)
-    [NSException raise: NSColorListNotEditableException
-		format: @"Color list cannot be edited\n"];
+  if (_is_editable == NO) {
+    [NSException raise: NSColorListNotEditableException reason: @"Color list cannot be edited\n"];
+  }
   
   [_colorDictionary setObject: aColor forKey: key];
 
-  if ([_orderedColorKeys containsObject: key] == NO)
+  if ([_orderedColorKeys containsObject: key] == NO) {
     [_orderedColorKeys addObject: key];
+  }
 
-  n = [NSNotification notificationWithName: NSColorListDidChangeNotification
-				    object: self
-				  userInfo: nil];
+  n = [NSNotification notificationWithName: NSColorListDidChangeNotification object: self userInfo: nil];
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [[NSNotificationQueue defaultQueue] 
     enqueueNotification: n
 	   postingStyle: NSPostASAP
 	   coalesceMask: NSNotificationCoalescingOnSender
 	       forModes: nil];
+#else 
+  [[NSNotificationCenter defaultCenter] postNotification: n];
+#endif
 }
 
 /*
@@ -501,12 +525,15 @@ static NSColorList *themeColorList = nil;
   success = [NSArchiver archiveRootObject: self 
 				   toFile: _fullFileName];
 
-  if (success && path_is_standard)
-    {
+  if (success && path_is_standard) {
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_colorListLock lock];
+#endif
       if ([_availableColorLists containsObject: self] == NO)
-	[_availableColorLists addObject: self];
-      [_colorListLock unlock];      
+	      [_availableColorLists addObject: self];
+#ifndef GNUSTEP_NO_MULTI_THREAD
+      [_colorListLock unlock]; 
+#endif     
       return YES;
     }
   
@@ -522,9 +549,13 @@ static NSColorList *themeColorList = nil;
 					       handler: nil];
       
       // Remove the color list from the global list of colors
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_colorListLock lock];
+#endif
       [_availableColorLists removeObject: self];
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_colorListLock unlock];
+#endif
 
       // Reset file name
       _fullFileName = nil;
@@ -585,12 +616,16 @@ static NSColorList *themeColorList = nil;
 
 + (void) _loadAvailableColorLists: (NSNotification*)aNotification
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_colorListLock lock];
+#endif
   /* FIXME ... we should ensure that we get housekeeping notifications */
   if (_availableColorLists != nil && aNotification == nil)
     {
       // Nothing to do ... already loaded
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_colorListLock unlock];
+#endif
     }
   else
     {
@@ -656,14 +691,17 @@ static NSColorList *themeColorList = nil;
       if (defaultSystemColorList != nil)
         {
 	  [_availableColorLists addObject: defaultSystemColorList];
-	}
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_colorListLock unlock];
+#endif
     }
 }
 
 + (void) _setDefaultSystemColorList: (NSColorList*)aList
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_colorListLock lock];
+#endif
   if (defaultSystemColorList != aList)
     {
       if (defaultSystemColorList != nil
@@ -674,12 +712,16 @@ static NSColorList *themeColorList = nil;
       ASSIGN(defaultSystemColorList, aList);
       [_availableColorLists addObject: aList];
     }
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_colorListLock unlock];
+#endif
 }
 
 + (void) _setThemeSystemColorList: (NSColorList*)aList
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_colorListLock lock];
+#endif
   if (themeColorList != aList)
     {
       if (themeColorList != nil && [_availableColorLists count] > 0
@@ -690,7 +732,9 @@ static NSColorList *themeColorList = nil;
       ASSIGN(themeColorList, aList);
       [_availableColorLists insertObject: aList atIndex: 0];
     }
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_colorListLock unlock];
+#endif
 }
 
 @end

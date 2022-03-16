@@ -67,8 +67,10 @@ static Class defaultNSGraphicsContextClass = NULL;
 /* Class variable for holding pointers to method functions */
 static NSMutableDictionary *classMethodTable;
 
-/* Lock for use when creating contexts */
+// Lock for use when creating contexts
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSRecursiveLock  *contextLock = nil;
+#endif
 
 #ifndef GNUSTEP_BASE_LIBRARY
 static NSString	*NSGraphicsContextThreadKey = @"NSGraphicsContextThreadKey";
@@ -93,22 +95,22 @@ NSString *GSColorSpaceColorTable = @"GSColorSpaceColorTable";
  */
 NSGraphicsContext	*GSCurrentContext(void)
 {
+#ifndef __EMSCRIPTEN__
 #ifdef GNUSTEP_BASE_LIBRARY
-/*
- *	gstep-base has a faster mechanism to get the current thread.
- */
+  // gstep-base has a faster mechanism to get the current thread.
   NSThread *th = GSCurrentThread();
 
-# if     defined(_NONFRAGILE_ABI)
-  return (NSGraphicsContext*)object_getIvar(th,
-    class_getInstanceVariable(object_getClass(th), "_gcontext"));
-# else
+#if defined(_NONFRAGILE_ABI)
+  return (NSGraphicsContext*)object_getIvar(th, class_getInstanceVariable(object_getClass(th), "_gcontext"));
+#else
   return (NSGraphicsContext*) th->_gcontext;
-# endif
+#endif
 #else
   NSMutableDictionary *dict = [[NSThread currentThread] threadDictionary];
-
   return (NSGraphicsContext*) [dict objectForKey: NSGraphicsContextThreadKey];
+#endif // GNUSTEP_BASE_LIBRARY
+#else
+  return _gcontext;
 #endif
 }
 
@@ -136,19 +138,24 @@ NSGraphicsContext	*GSCurrentContext(void)
 
 + (void) initialize
 {
-  if (contextLock == nil)
-    {
-      [gnustep_global_lock lock];
-      if (contextLock == nil)
-	{
-	  contextLock = [NSRecursiveLock new];
-	  defaultNSGraphicsContextClass = [NSGraphicsContext class];
-	  _globalGSZone = NSDefaultMallocZone();
-	  classMethodTable =
-	    [[NSMutableDictionary allocWithZone: _globalGSZone] init];
-	}
-      [gnustep_global_lock unlock];
-    }
+#ifndef GNUSTEP_NO_MULTI_THREAD
+  if (contextLock == nil) {
+    [gnustep_global_lock lock];
+    
+    if (contextLock == nil) {
+	    contextLock = [NSRecursiveLock new];
+	    defaultNSGraphicsContextClass = [NSGraphicsContext class];
+	    _globalGSZone = NSDefaultMallocZone();
+	    classMethodTable = [[NSMutableDictionary allocWithZone: _globalGSZone] init];
+	  }
+    
+    [gnustep_global_lock unlock];
+  }
+#else
+    defaultNSGraphicsContextClass = [NSGraphicsContext class];
+    _globalGSZone = NSDefaultMallocZone();
+    classMethodTable = [[NSMutableDictionary allocWithZone: _globalGSZone] init];
+#endif
 }
 
 + (void) initializeBackend
@@ -164,25 +171,28 @@ NSGraphicsContext	*GSCurrentContext(void)
   defaultNSGraphicsContextClass = defaultContextClass;
 }
 
+
 /** Set the current context that will handle drawing. */
 + (void) setCurrentContext: (NSGraphicsContext *)context
 {
+#ifndef __EMSCRIPTEN__
 #ifdef GNUSTEP_BASE_LIBRARY
-/*
- *	gstep-base has a faster mechanism to get the current thread.
- */
+//	gstep-base has a faster mechanism to get the current thread.
   NSThread *th = GSCurrentThread();
 
-# if     defined(_NONFRAGILE_ABI)
+#if defined(_NONFRAGILE_ABI)
   object_setIvar(th,
     class_getInstanceVariable(object_getClass(th), "_gcontext"), context);
-# else
+#else
   ASSIGN(th->_gcontext, context);
-# endif
+#endif
 #else
   NSMutableDictionary *dict = [[NSThread currentThread] threadDictionary];
 
   [dict setObject: context forKey: NSGraphicsContextThreadKey];
+#endif
+#else
+  ASSIGN(_gcontext, context);
 #endif
 }
 
@@ -252,13 +262,13 @@ NSGraphicsContext	*GSCurrentContext(void)
 + (void) restoreGraphicsState
 {
   NSGraphicsContext *ctxt;
+#ifndef __EMSCRIPTEN__
   NSMutableDictionary *dict = [[NSThread currentThread] threadDictionary];
   NSMutableArray *stack = [dict objectForKey: NSGraphicsContextStackKey];
 
   if (stack == nil)
     {
-      [NSException raise: NSGenericException
-		   format: @"restoreGraphicsState without previous save"];
+      [NSException raise: NSGenericException format: @"restoreGraphicsState without previous save"];
     }
   // might be nil, i.e. no current context
   ctxt = [stack lastObject];
@@ -268,11 +278,26 @@ NSGraphicsContext	*GSCurrentContext(void)
       [stack removeLastObject];
       [ctxt restoreGraphicsState];
     }
+#else
+    if (!_gstack) {
+      [NSException raise: NSGenericException format: @"restoreGraphicsState without previous save"];
+    }
+
+  // might be nil, i.e. no current context
+  ctxt = [_gstack lastObject];
+  [NSGraphicsContext setCurrentContext: ctxt];
+  if (ctxt) {
+    [_gstack removeLastObject];
+    [ctxt restoreGraphicsState];
+  }
+
+#endif
 }
 
 + (void) saveGraphicsState
 {
   NSGraphicsContext *ctxt;
+#ifndef __EMSCRIPTEN__
   NSMutableDictionary *dict = [[NSThread currentThread] threadDictionary];
   NSMutableArray *stack = [dict objectForKey: NSGraphicsContextStackKey];
   if (stack == nil)
@@ -288,6 +313,18 @@ NSGraphicsContext	*GSCurrentContext(void)
       [ctxt saveGraphicsState];
       [stack addObject: ctxt];
     }
+#else
+  if (_gstack == nil) {
+    _gstack = [[NSMutableArray allocWithZone: _globalGSZone] init];
+    RETAIN(_gstack);
+  }
+  // might be nil, i.e. no current context
+  ctxt = GSCurrentContext();
+  if (ctxt) {
+    [ctxt saveGraphicsState];
+    [_gstack addObject: ctxt];
+  }
+#endif
 }
 
 + (void) setGraphicsState: (NSInteger)graphicsState
@@ -340,11 +377,11 @@ NSGraphicsContext	*GSCurrentContext(void)
 				  initWithCapacity: 1];
       usedFonts = nil;
 
-      /*
-       * The classMethodTable dictionary and the list of all contexts must both
-       * be protected from other threads.
-       */
+      // The classMethodTable dictionary and the list of all contexts must both
+      // be protected from other threads.
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [contextLock lock];
+#endif
       methods = [[classMethodTable objectForKey: [self class]] pointerValue];
       if (methods == 0)
         {
@@ -352,7 +389,9 @@ NSGraphicsContext	*GSCurrentContext(void)
           [classMethodTable setObject: [NSValue valueWithPointer: methods]
                             forKey: [self class]];
         }
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [contextLock unlock];
+#endif
     }
   return self;
 }

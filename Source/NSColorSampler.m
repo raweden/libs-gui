@@ -40,7 +40,10 @@
 
 #import <GNUstepGUI/GSDisplayServer.h>
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSLock *_gs_gui_color_sampler_lock = nil;
+#endif
+
 static NSColorSampler *_gs_gui_color_sampler = nil;
 
 @interface NSWindow (private)
@@ -56,7 +59,9 @@ static NSColorSampler *_gs_gui_color_sampler = nil;
     {
       // Initial version
       [self setVersion: 1];
+#ifndef GNUSTEP_NO_MULTI_THREAD
       _gs_gui_color_sampler_lock = [NSLock new];
+#endif
     }
 }
 
@@ -86,7 +91,9 @@ static NSColorSampler *_gs_gui_color_sampler = nil;
   NSPanel *w = nil;     
   NSColor *color = nil;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_gs_gui_color_sampler_lock lock];
+#endif
 
   w =  [[NSPanel alloc] initWithContentRect: contentRect
                                   styleMask: style
@@ -151,7 +158,9 @@ static NSColorSampler *_gs_gui_color_sampler = nil;
   [w _releaseMouse: self];
   [w close];
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_gs_gui_color_sampler_lock unlock];
+#endif
 }
 
 @end

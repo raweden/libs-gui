@@ -41,7 +41,9 @@
 @class NSArray;
 @class NSMutableArray;
 @class NSNumber;
+#ifndef GNUSTEP_NO_MULTI_THREAD
 @class NSRecursiveLock;
+#endif
 
 /** These constants describe the curve of an animation,
     that is, the relative speed of an animation from start to finish. */
@@ -145,7 +147,9 @@ APPKIT_EXPORT NSString *NSAnimationTriggerOrderOut;
   id _currentDelegate; // The delegate when the animation is running
 
   BOOL _isThreaded;
+#ifndef GNUSTEP_NO_MULTI_THREAD
   NSRecursiveLock *_isAnimatingLock;
+#endif
 }
 
 /** Adds the progress mark to the receiver. */

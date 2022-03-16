@@ -45,7 +45,9 @@
 @class NSURL;
 @class NSThread;
 @class NSConditionLock;
+#ifndef GNUSTEP_NO_MULTI_THREAD
 @class NSLock;
+#endif
 
 /** Function used to retrieve all available playback devices.
  *  <p>This function is the only way to retrieve possible playback
@@ -65,8 +67,10 @@ NSArray *PlaybackDeviceIdentifiers (void);
   
   id<GSSoundSource> _source;
   id<GSSoundSink>   _sink;
+#ifndef GNUSTEP_NO_MULTI_THREAD
   NSConditionLock   *_readLock;
   NSLock            * _playbackLock;
+#endif
   BOOL _shouldStop;
   BOOL _shouldLoop;
 }

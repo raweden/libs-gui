@@ -54,10 +54,12 @@ cache fairly aggressively without having to worry about memory consumption.
 
 @implementation GSHorizontalTypesetter
 
-- init
+-(id) init
 {
   if (!(self = [super init])) return nil;
+#ifndef GNUSTEP_NO_MULTI_THREAD
   lock = [[NSLock alloc] init];
+#endif
   return self;
 }
 
@@ -73,12 +75,19 @@ cache fairly aggressively without having to worry about memory consumption.
       free(line_frags);
       line_frags = NULL;
     }
+#ifndef GNUSTEP_NO_MULTI_THREAD
   DESTROY(lock);
+#endif
   [super dealloc];
 }
 
+#ifdef __EMSCRIPTEN__
+static GSHorizontalTypesetter *s_globalShared;
+#endif
+
 +(GSHorizontalTypesetter *) sharedInstance
 {
+#ifndef __EMSCRIPTEN__
   NSMutableDictionary *threadDict = 
     [[NSThread currentThread] threadDictionary];
   GSHorizontalTypesetter *shared = 
@@ -93,6 +102,15 @@ cache fairly aggressively without having to worry about memory consumption.
     }
 
   return shared;
+#else
+  if (!s_globalShared) {
+    s_globalShared = [[GSHorizontalTypesetter alloc] init];
+    [s_globalShared retain];
+    //[NSObject leakAt:s_globalShared];
+  }
+
+  return s_globalShared;
+#endif
 }
 
 #define CACHE_INITIAL 192
@@ -1256,6 +1274,7 @@ restart: ;
   int ret, real_ret;
   BOOL newParagraph;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   if (![lock tryLock])
     {
       /* Since we might be the shared system typesetter, we must be
@@ -1273,6 +1292,7 @@ restart: ;
       DESTROY(temp);
       return ret;
     }
+#endif
 
 NS_DURING
   curLayoutManager = layoutManager;
@@ -1305,8 +1325,7 @@ NS_DURING
 	    {
 	      unsigned int chi;
 	      unichar ch;
-	      chi = [curLayoutManager characterRangeForGlyphRange: NSMakeRange(curGlyph - 1, 1)
-						 actualGlyphRange: NULL].location;
+	      chi = [curLayoutManager characterRangeForGlyphRange: NSMakeRange(curGlyph - 1, 1) actualGlyphRange: NULL].location;
 	      ch = [[curTextStorage string] characterAtIndex: chi];
 	
 	      if (ch == '\n')
@@ -1341,11 +1360,15 @@ NS_DURING
   *nextGlyphIndex = curGlyph;
 NS_HANDLER
   NSLog(@"GSHorizontalTypesetter - %@", [localException reason]);
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [lock unlock];
+#endif
   [localException raise];
-  ret=0; /* This is never reached, but it shuts up the compiler. */
+  ret=0; // This is never reached, but it shuts up the compiler.
 NS_ENDHANDLER
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [lock unlock];
+#endif
   return ret;
 }
 

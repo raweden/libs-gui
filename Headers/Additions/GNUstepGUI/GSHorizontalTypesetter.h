@@ -30,14 +30,20 @@
 
 #import <GNUstepGUI/GSTypesetter.h>
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
 @class NSLock;
+#endif
+
 @class GSLayoutManager, NSTextContainer, NSTextStorage;
 @class NSDictionary;
 @class NSParagraphStyle, NSFont;
 
 @interface GSHorizontalTypesetter : GSTypesetter
 {
+  
+#ifndef GNUSTEP_NO_MULTI_THREAD
   NSLock *lock;
+#endif
 
   GSLayoutManager *curLayoutManager;
   NSTextContainer *curTextContainer;

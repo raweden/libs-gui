@@ -156,18 +156,25 @@ static inline void _loadNSSoundPlugIns (void)
           do
             {
               // If not SOUND_SHOULD_PLAY block thread
+#ifndef GNUSTEP_NO_MULTI_THREAD
               [_readLock lockWhenCondition: SOUND_SHOULD_PLAY];
+#endif
               if (_shouldStop)
                 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
                   [_readLock unlock];
+#endif
                   break;
                 }
-              bytesRead = [_source readBytes: buffer
-                                     length: BUFFER_SIZE];
+              bytesRead = [_source readBytes: buffer length: BUFFER_SIZE];
+#ifndef GNUSTEP_NO_MULTI_THREAD
               [_readLock unlock];
               [_playbackLock lock];
+#endif
               success = [_sink playBytes: buffer length: bytesRead];
+#ifndef GNUSTEP_NO_MULTI_THREAD
               [_playbackLock unlock];
+#endif
             } while ((!_shouldStop) && (bytesRead > 0) && success);
           
           [_source setCurrentTime: 0.0];
@@ -186,8 +193,10 @@ static inline void _loadNSSoundPlugIns (void)
 
 - (void)_finished: (NSNumber *)finishedPlaying
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   DESTROY(_readLock);
   DESTROY(_playbackLock);
+#endif
   
   /* FIXME: should I call -sound:didFinishPlaying: when -stop was sent? */
   if ([_delegate respondsToSelector: @selector(sound:didFinishPlaying:)])
@@ -347,6 +356,7 @@ static inline void _loadNSSoundPlugIns (void)
 //
 - (BOOL) pause 
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   // Do nothing if sound is already paused.
   if ([_readLock condition] == SOUND_SHOULD_PAUSE)
     {
@@ -358,12 +368,14 @@ static inline void _loadNSSoundPlugIns (void)
       return NO;
     }
   [_readLock unlockWithCondition: SOUND_SHOULD_PAUSE];
+#endif
   return YES;
 }
 
 - (BOOL) play
 {
   // If the locks exists this instance is already playing
+#ifndef GNUSTEP_NO_MULTI_THREAD
   if (_readLock != nil && _playbackLock != nil)
     {
       return NO;
@@ -376,17 +388,21 @@ static inline void _loadNSSoundPlugIns (void)
     {
       return NO;
     }
+#endif
   _shouldStop = NO;
   [NSThread detachNewThreadSelector: @selector(_stream)
                            toTarget: self
                          withObject: nil];
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_readLock unlockWithCondition: SOUND_SHOULD_PLAY];
+#endif
   
   return YES;
 }
 
 - (BOOL) resume
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   // Do nothing if sound is already playing.
   if ([_readLock condition] == SOUND_SHOULD_PLAY)
     {
@@ -398,11 +414,13 @@ static inline void _loadNSSoundPlugIns (void)
       return NO;
     }
   [_readLock unlockWithCondition: SOUND_SHOULD_PLAY];
+#endif
   return YES;
 }
 
 - (BOOL) stop
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   if (_readLock == nil)
     {
       return NO;
@@ -415,12 +433,13 @@ static inline void _loadNSSoundPlugIns (void)
   _shouldStop = YES;
   // Set to SOUND_SHOULD_PLAY so that thread isn't blocked.
   [_readLock unlockWithCondition: SOUND_SHOULD_PLAY];
-  
+#endif
   return YES;
 }
 
 - (BOOL) isPlaying
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   if (_readLock == nil)
     {
       return NO;
@@ -429,6 +448,7 @@ static inline void _loadNSSoundPlugIns (void)
     {
       return YES;
     }
+#endif
   return NO;
 }
 
@@ -439,9 +459,13 @@ static inline void _loadNSSoundPlugIns (void)
 
 - (void) setVolume: (float) volume
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_playbackLock lock];
+#endif
   [_sink setVolume: volume];
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_playbackLock unlock];
+#endif
 }
 
 - (NSTimeInterval) currentTime
@@ -451,9 +475,13 @@ static inline void _loadNSSoundPlugIns (void)
 
 - (void) setCurrentTime: (NSTimeInterval) currentTime
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_readLock lock];
+#endif
   [_source setCurrentTime: currentTime];
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_readLock unlock];
+#endif
 }
 
 - (BOOL) loops
@@ -693,9 +721,13 @@ static inline void _loadNSSoundPlugIns (void)
 {
   if ([[_sink class] canInitWithPlaybackDevice: playbackDeviceIdentifier])
     {
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_playbackLock lock];
+#endif
       [_sink setPlaybackDeviceIdentifier: playbackDeviceIdentifier];
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [_playbackLock unlock];
+#endif
     }
 }
 
@@ -706,9 +738,13 @@ static inline void _loadNSSoundPlugIns (void)
 
 - (void) setChannelMapping: (NSArray *)channelMapping
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_playbackLock lock];
+#endif
   [_sink setChannelMapping: channelMapping];
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [_playbackLock unlock];
+#endif
 }
 
 //

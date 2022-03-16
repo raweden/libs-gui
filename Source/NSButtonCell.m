@@ -36,7 +36,7 @@
 #import <Foundation/NSAttributedString.h>
 #import <Foundation/NSDebug.h>
 #import <Foundation/NSException.h>
-#import <Foundation/NSLock.h>
+#import <Foundation/NSLock.h> // TODO: needed?
 #import <Foundation/NSString.h>
 #import <Foundation/NSValue.h>
 

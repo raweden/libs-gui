@@ -380,8 +380,10 @@ fixupImageNameAndType(NSString **name, NSString **type)
 }
 @end
 
-/* Class variables and functions for class methods */
+// Class variables and functions for class methods
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSRecursiveLock		*imageLock = nil;
+#endif
 static NSMutableDictionary	*nameDict = nil;
 static NSColor			*clearColor = nil;
 static Class cachedClass = 0;
@@ -430,12 +432,16 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
 
 + (void) initialize
 {
-  if (imageLock == nil)
-    {
-      NSString *path;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
+  if (imageLock == nil) {
       imageLock = [NSRecursiveLock new];
       [imageLock lock];
+#else
+  if (self == [NSImage class]) {
+#endif
+
+      NSString *path;
 
       // Initial version
       [self setVersion: 1];
@@ -456,7 +462,9 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
 	   selector: @selector(_clearFileTypeCaches:)
 	       name: NSImageRepRegistryChangedNotification
 	     object: [NSImageRep class]];
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [imageLock unlock];
+#endif
     }
 }
 
@@ -465,7 +473,9 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
   NSImage   *image;
   NSString  *realName;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [imageLock lock];
+#endif
 
   realName = [nsmapping objectForKey: aName];
   if (realName == nil)
@@ -492,7 +502,9 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
     }
 
   IF_NO_GC([[image retain] autorelease]);
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [imageLock unlock];
+#endif
   return image;
 }
 
@@ -739,13 +751,17 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
  */
 - (BOOL) setName: (NSString *)aName
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [imageLock lock];
+#endif
 
   /* The name is already set... nothing to do.
    */
   if (aName == _name || [aName isEqual: _name] == YES)
     {
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [imageLock unlock];
+#endif
       return YES;
     }
 
@@ -754,7 +770,9 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
    */
   if (aName != nil && [nameDict objectForKey: aName] != nil)
     {
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [imageLock unlock];
+#endif
       return NO;
     }
 
@@ -772,7 +790,9 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
    */
   if (aName == nil)
     {
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [imageLock unlock];
+#endif
       return NO;
     }
 
@@ -780,7 +800,9 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
 
   [nameDict setObject: self forKey: _name];
   
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [imageLock unlock];
+#endif
   return YES;
 }
 
@@ -788,9 +810,16 @@ repd_for_rep(NSArray *_reps, NSImageRep *rep)
 {
   NSString	*name;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [imageLock lock];
+#endif
+  
   name = [[_name retain] autorelease];
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [imageLock unlock];
+#endif
+  
   return name;
 }
 
@@ -2233,7 +2262,10 @@ iterate_reps_for_types(NSArray* imageReps, SEL method)
   NSString *name;
   NSEnumerator *e = [nameDict keyEnumerator];
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [imageLock lock];
+#endif
+
   while ((name = [e nextObject]) != nil)
     {
       NSImage *image = [nameDict objectForKey: name];
@@ -2249,7 +2281,10 @@ iterate_reps_for_types(NSArray* imageReps, SEL method)
 	  [image _resetAndUseFromFile: path];
 	}   
     }
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [imageLock unlock];
+#endif
 }
 
 

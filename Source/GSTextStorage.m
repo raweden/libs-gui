@@ -88,8 +88,14 @@ cacheEqual(id A, id B)
 #include <GNUstepBase/GSIMap.h>
 
 static NSDictionary	*blank;
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSLock		*attrLock = nil;
+#endif
+
 static GSIMapTable_t	attrMap;
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static SEL		lockSel;
 static SEL		unlockSel;
 static IMP		lockImp;
@@ -97,6 +103,13 @@ static IMP		unlockImp;
 
 #define	ALOCK()	if (attrLock != nil) (*lockImp)(attrLock, lockSel)
 #define	AUNLOCK() if (attrLock != nil) (*unlockImp)(attrLock, unlockSel)
+
+#else
+
+#define ALOCK()
+#define AUNLOCK()
+
+#endif
 
 @interface GSTextStorageProxy : NSProxy
 {
@@ -560,11 +573,13 @@ _attributesAtIndexEffectiveRange(
  */
 + (void) _becomeThreaded: (id)notification
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   attrLock = [NSLock new];
   lockSel = @selector(lock);
   unlockSel = @selector(unlock);
   lockImp = [attrLock methodForSelector: lockSel];
   unlockImp = [attrLock methodForSelector: unlockSel];
+#endif
 }
 
 + (void) initialize

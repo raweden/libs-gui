@@ -80,7 +80,9 @@ static BOOL did_init = NO;
 static cache_t cache[NUM_CACHE_ENTRIES + 1];
 
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSRecursiveLock *cacheLock = nil;
+#endif
 
 /* For collecting statistics. */
 //#define STATS
@@ -138,11 +140,13 @@ static inline void cache_lock()
 {
   // FIXME: Put all the init code into an +initialize method
   // to let the runtime take care of it.
+#ifndef GNUSTEP_NO_MULTI_THREAD
   if (cacheLock == nil)
     {
       cacheLock = [[NSRecursiveLock alloc] init];
     }
   [cacheLock lock];
+#endif
   if (!did_init)
     {
       init_string_drawing();
@@ -151,7 +155,9 @@ static inline void cache_lock()
 
 static inline void cache_unlock()
 {
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [cacheLock unlock];
+#endif
 }
 
 static inline BOOL is_size_match(cache_t *c, cache_t *scratch)

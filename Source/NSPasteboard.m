@@ -1084,10 +1084,13 @@ static NSString	*namePrefix = @"NSTypedFilenamesPboardType:";
  */
 @implementation NSPasteboard
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static	NSRecursiveLock		*dictionary_lock = nil;
-static	NSMapTable		*pasteboards = 0;
+#endif
+
+static	NSMapTable *pasteboards = 0;
 static	id<GSPasteboardSvr>	the_server = nil;
-static  NSMapTable              *mimeMap = NULL;
+static  NSMapTable *mimeMap = NULL;
 
 /**
  * Returns the general pasteboard found by calling +pasteboardWithName:
@@ -1104,9 +1107,11 @@ static  NSMapTable              *mimeMap = NULL;
     {
       // Initial version
       [self setVersion: 1];
+#ifndef GNUSTEP_NO_MULTI_THREAD
       dictionary_lock = [[NSRecursiveLock alloc] init];
-      pasteboards = NSCreateMapTable (NSObjectMapKeyCallBacks,
-	NSNonRetainedObjectMapValueCallBacks, 0);
+#endif
+
+      pasteboards = NSCreateMapTable (NSObjectMapKeyCallBacks, NSNonRetainedObjectMapValueCallBacks, 0);
     }
 }
 
@@ -1436,13 +1441,20 @@ static  NSMapTable              *mimeMap = NULL;
 - (void) dealloc
 {
   DESTROY(target);
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [dictionary_lock lock];
+#endif
+
   if (NSMapGet(pasteboards, (void*)name) == (void*)self)
     {
       NSMapRemove(pasteboards, (void*)name);
     }
   DESTROY(name);
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [dictionary_lock unlock];
+#endif
+
   [super dealloc];
 }
 
@@ -1498,12 +1510,18 @@ static  NSMapTable              *mimeMap = NULL;
 		  format: @"Illegal attempt to globally release %@", name];
     }
   [target releaseGlobally];
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [dictionary_lock lock];
+#endif
+
   if (NSMapGet(pasteboards, (void*)name) == (void*)self)
     {
       NSMapRemove(pasteboards, (void*)name);
     }
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [dictionary_lock unlock];
+#endif
 }
 
 /**
@@ -2097,9 +2115,12 @@ description, [cmd stringByDeletingLastPathComponent]);
 + (NSPasteboard*) _pasteboardWithTarget: (id<GSPasteboardObj>)aTarget
 				   name: (NSString*)aName
 {
-  NSPasteboard	*p = nil;
+  NSPasteboard *p = nil;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [dictionary_lock lock];
+#endif
+
   p = (NSPasteboard*)NSMapGet(pasteboards, (void*)aName);
   if (p != nil)
     {
@@ -2134,7 +2155,11 @@ description, [cmd stringByDeletingLastPathComponent]);
 	}
     }
   p->changeCount = [p->target changeCount];
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [dictionary_lock unlock];
+#endif
+  
   return p;
 }
 

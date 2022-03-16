@@ -128,7 +128,9 @@ static NSImage	*multipleFiles = nil;
 static NSImage	*unknownApplication = nil;
 static NSImage	*unknownTool = nil;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
 static NSLock   *mlock = nil;
+#endif
 
 static NSString	*GSWorkspaceNotification = @"GSWorkspaceNotification";
 static NSString *GSWorkspacePreferencesChanged =
@@ -153,15 +155,20 @@ static id GSLaunched(NSNotification *notification, BOOL active)
   BOOL				modified = NO;
   unsigned	                sleeps = 0;
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   [mlock lock]; // start critical section
+#endif
+
   if (path == nil)
     {
-      path = [NSTemporaryDirectory()
-	stringByAppendingPathComponent: @"GSLaunchedApplications"];
+      path = [NSTemporaryDirectory() stringByAppendingPathComponent: @"GSLaunchedApplications"];
       RETAIN(path);
-      lock = [[NSDistributedLock alloc] initWithPath:
-	[path stringByAppendingPathExtension: @"lock"]];
+#ifndef GNUSTEP_NO_MULTI_THREAD
+      lock = [[NSDistributedLock alloc] initWithPath: [path stringByAppendingPathExtension: @"lock"]];
+#endif
     }
+
+#ifndef GNUSTEP_NO_MULTI_THREAD
   if ([lock tryLock] == NO)
     {
       /*
@@ -198,6 +205,7 @@ static id GSLaunched(NSNotification *notification, BOOL active)
           return nil;
 	}
     }
+#endif
 
   if ([[NSFileManager defaultManager] isReadableFileAtPath: path] == YES)
     {
@@ -276,6 +284,7 @@ static id GSLaunched(NSNotification *notification, BOOL active)
       [file writeToFile: path atomically: YES];
     }
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
   NS_DURING
     {
       sleeps = 0;
@@ -307,6 +316,7 @@ static id GSLaunched(NSNotification *notification, BOOL active)
     }
   NS_ENDHANDLER;
   [mlock unlock];  // end critical section
+#endif
   
   if (active == YES)
     {
@@ -341,11 +351,15 @@ static id GSLaunched(NSNotification *notification, BOOL active)
   [super dealloc];
 }
 
+#ifdef __EMSCRIPTEN__
+static NSNotificationCenter *s_workspaceNC;
+#endif
+
 - (id) init
 {
   self = [super init];
-  if (self != nil)
-    {
+  if (self != nil) {
+#ifndef __EMSCRIPTEN__
       remote = RETAIN([NSDistributedNotificationCenter defaultCenter]);
       NS_DURING
 	{
@@ -360,8 +374,7 @@ static id GSLaunched(NSNotification *notification, BOOL active)
 
 	  if ([defs boolForKey: @"GSLogWorkspaceTimeout"])
 	    {
-	      NSLog(@"NSWorkspace caught exception %@: %@", 
-	        [localException name], [localException reason]);
+	      NSLog(@"NSWorkspace caught exception %@: %@", [localException name], [localException reason]);
 	    }
 	  else
 	    {
@@ -369,6 +382,15 @@ static id GSLaunched(NSNotification *notification, BOOL active)
 	    }
 	}
       NS_ENDHANDLER
+#else
+#warning "FIXME: NSWorkspace/_GSWorkspaceCenter falling back to local NSNotificationCenter for WebAssembly!"
+    if (s_workspaceNC == nil) {
+      s_workspaceNC = [[NSNotificationCenter alloc] init];
+      RETAIN(s_workspaceNC);
+    }
+    remote = s_workspaceNC;
+    [remote addObserver: self selector: @selector(_handleRemoteNotification:) name: nil object: GSWorkspaceNotification];
+#endif
     }
   return self;
 }
@@ -384,6 +406,7 @@ static id GSLaunched(NSNotification *notification, BOOL active)
   NSString		*name = [aNotification name];
   NSDictionary		*info = [aNotification userInfo];
 
+#ifndef __EMSCRIPTEN__
   if ([name isEqual: NSWorkspaceDidTerminateApplicationNotification] == YES
     || [name isEqual: NSWorkspaceDidLaunchApplicationNotification] == YES
     || [name isEqualToString: NSApplicationDidBecomeActiveNotification] == YES
@@ -391,6 +414,7 @@ static id GSLaunched(NSNotification *notification, BOOL active)
     {
       GSLaunched(aNotification, YES);
     }
+#endif
 
   rem = [NSNotification notificationWithName: name
 				      object: GSWorkspaceNotification
@@ -603,21 +627,27 @@ static NSDictionary		*urlPreferences = nil;
 
       [self setVersion: 1];
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [gnustep_global_lock lock];
+#endif
+      
       if (beenHere == YES)
 	{
+#ifndef GNUSTEP_NO_MULTI_THREAD
 	  [gnustep_global_lock unlock];
+#endif
+
 	  return;
 	}
 
       beenHere = YES;
+#ifndef GNUSTEP_NO_MULTI_THREAD
       mlock = [NSLock new];
+#endif
 
       NS_DURING
 	{
-	  service = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, 
-	    NSUserDomainMask, YES) objectAtIndex: 0]
-	    stringByAppendingPathComponent: @"Services"];
+	  service = [[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,  NSUserDomainMask, YES) objectAtIndex: 0] stringByAppendingPathComponent: @"Services"];
 	  
 	  /*
 	   *	Load file extension preferences.
@@ -672,12 +702,17 @@ static NSDictionary		*urlPreferences = nil;
 	}
       NS_HANDLER
 	{
+#ifndef GNUSTEP_NO_MULTI_THREAD
 	  [gnustep_global_lock unlock];
-	  [localException raise];
+#endif
+	  
+    [localException raise];
 	}
       NS_ENDHANDLER
 
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [gnustep_global_lock unlock];
+#endif
     }
 }
 
@@ -695,14 +730,18 @@ static NSDictionary		*urlPreferences = nil;
 {
   if (sharedWorkspace == nil)
     {
+#ifndef GNUSTEP_NO_MULTI_THREAD
       [gnustep_global_lock lock];
       if (sharedWorkspace == nil)
 	{
+#endif
 	  sharedWorkspace =
 		(NSWorkspace*)NSAllocateObject(self, 0, NSDefaultMallocZone());
 	  [sharedWorkspace init];
+#ifndef GNUSTEP_NO_MULTI_THREAD
 	}
       [gnustep_global_lock unlock];
+#endif
     }
   return sharedWorkspace;
 }
@@ -765,29 +804,21 @@ static NSDictionary		*urlPreferences = nil;
     name: GSWorkspacePreferencesChanged
     object: nil];
 
-  /* icon association and caching */
+  // icon association and caching
   folderPathIconDict = [[NSMutableDictionary alloc] initWithCapacity:5];
 
-  documentDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
-    NSUserDomainMask, YES);
-  downloadDir = NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory,
-    NSUserDomainMask, YES);
-  desktopDir = NSSearchPathForDirectoriesInDomains(NSDesktopDirectory,
-    NSUserDomainMask, YES);
-  libraryDirs = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
-    NSAllDomainsMask, YES);
-  sysAppDir = NSSearchPathForDirectoriesInDomains(NSApplicationDirectory,
-    NSSystemDomainMask, YES);
-  appDirs = NSSearchPathForDirectoriesInDomains(NSApplicationDirectory,
-    NSAllDomainsMask, YES);
-  imgDir = NSSearchPathForDirectoriesInDomains(NSPicturesDirectory,
-    NSUserDomainMask, YES);
-  musicDir = NSSearchPathForDirectoriesInDomains(NSMusicDirectory,
-    NSUserDomainMask, YES);
-  videoDir = NSSearchPathForDirectoriesInDomains(NSMoviesDirectory,
-    NSUserDomainMask, YES);
+#ifndef __EMSCRIPTEN__
+  documentDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+  downloadDir = NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES);
+  desktopDir = NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, YES);
+  libraryDirs = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask, YES);
+  sysAppDir = NSSearchPathForDirectoriesInDomains(NSApplicationDirectory, NSSystemDomainMask, YES);
+  appDirs = NSSearchPathForDirectoriesInDomains(NSApplicationDirectory, NSAllDomainsMask, YES);
+  imgDir = NSSearchPathForDirectoriesInDomains(NSPicturesDirectory, NSUserDomainMask, YES);
+  musicDir = NSSearchPathForDirectoriesInDomains(NSMusicDirectory, NSUserDomainMask, YES);
+  videoDir = NSSearchPathForDirectoriesInDomains(NSMoviesDirectory, NSUserDomainMask, YES);
 
-  /* we try to guess a System directory and check if looks like one */
+  // we try to guess a System directory and check if looks like one
   sysDir = nil;
   if ([sysAppDir count] > 0)
     {
@@ -799,52 +830,44 @@ static NSDictionary		*urlPreferences = nil;
   if (sysDir != nil)
     [folderPathIconDict setObject: @"GSFolder" forKey: sysDir];
 
-  [folderPathIconDict setObject: @"HomeDirectory"
-    forKey: NSHomeDirectory()];
+  [folderPathIconDict setObject: @"HomeDirectory" forKey: NSHomeDirectory()];
 
-  /* it would be nice to use different root icons... */
+  // it would be nice to use different root icons... 
   [folderPathIconDict setObject: @"Root_PC" forKey: NSOpenStepRootDirectory()];
 
   for (i = 0; i < [libraryDirs count]; i++)
     {
-      [folderPathIconDict setObject: @"LibraryFolder"
-	forKey: [libraryDirs objectAtIndex: i]];
+      [folderPathIconDict setObject: @"LibraryFolder" forKey: [libraryDirs objectAtIndex: i]];
     }
   for (i = 0; i < [appDirs count]; i++)
     {
-      [folderPathIconDict setObject: @"ApplicationFolder"
-	forKey: [appDirs objectAtIndex: i]];
+      [folderPathIconDict setObject: @"ApplicationFolder" forKey: [appDirs objectAtIndex: i]];
     }
   for (i = 0; i < [documentDir count]; i++)
     {
-      [folderPathIconDict setObject: @"DocsFolder"
-	forKey: [documentDir objectAtIndex: i]];
+      [folderPathIconDict setObject: @"DocsFolder" forKey: [documentDir objectAtIndex: i]];
     }
   for (i = 0; i < [downloadDir count]; i++)
     {
-      [folderPathIconDict setObject: @"DownloadFolder"
-	forKey: [downloadDir objectAtIndex: i]];
+      [folderPathIconDict setObject: @"DownloadFolder" forKey: [downloadDir objectAtIndex: i]];
     }
   for (i = 0; i < [desktopDir count]; i++)
     {
-      [folderPathIconDict setObject: @"Desktop"
-	forKey: [desktopDir objectAtIndex: i]];
+      [folderPathIconDict setObject: @"Desktop" forKey: [desktopDir objectAtIndex: i]];
     }
   for (i = 0; i < [imgDir count]; i++)
     {
-      [folderPathIconDict setObject: @"ImageFolder"
-	forKey: [imgDir objectAtIndex: i]];
+      [folderPathIconDict setObject: @"ImageFolder" forKey: [imgDir objectAtIndex: i]];
     }
   for (i = 0; i < [musicDir count]; i++)
     {
-      [folderPathIconDict setObject: @"MusicFolder"
-	forKey: [musicDir objectAtIndex: i]];
+      [folderPathIconDict setObject: @"MusicFolder" forKey: [musicDir objectAtIndex: i]];
     }
   for (i = 0; i < [videoDir count]; i++)
     {
-      [folderPathIconDict setObject: @"VideoFolder"
-	forKey: [videoDir objectAtIndex: i]];
+      [folderPathIconDict setObject: @"VideoFolder"	forKey: [videoDir objectAtIndex: i]];
     }
+#endif
   folderIconCache = [[NSMutableDictionary alloc] init];
 
   return self;
@@ -1733,6 +1756,7 @@ inFileViewerRootedAtPath: (NSString*)rootFullpath
  */
 - (void) findApplications
 {
+#ifndef __EMSCRIPTEN__
   static NSString	*path = nil;
   NSTask		*task;
 
@@ -1752,6 +1776,9 @@ inFileViewerRootedAtPath: (NSString*)rootFullpath
   [self _workspacePreferencesChanged:
      [NSNotification notificationWithName: GSWorkspacePreferencesChanged
 				   object: self]];
+#else
+#warning "FIXME: [NSWorkspace findApplications] not supported in WebAssembly"
+#endif
 }
 
 /**
@@ -1881,6 +1908,7 @@ launchIdentifiers: (NSArray **)identifiers
  */
 - (NSDictionary*) activeApplication
 {
+#ifndef __EMSCRIPTEN__
   id	app;
 
   NS_DURING
@@ -1898,6 +1926,9 @@ launchIdentifiers: (NSArray **)identifiers
   NS_ENDHANDLER
 
   return GSLaunched(nil, YES);
+#else
+  return nil;
+#endif
 }
 
 /**
@@ -1909,6 +1940,7 @@ launchIdentifiers: (NSArray **)identifiers
 {
   NSArray       *apps = nil;
 
+#ifndef __EMSCRIPTEN__
   NS_DURING
     {
       id	app;
@@ -1962,6 +1994,7 @@ launchIdentifiers: (NSArray **)identifiers
             }
         }
     }
+#endif
   return apps;
 }
 
