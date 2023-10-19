@@ -47,7 +47,7 @@
 #import "AppKit/NSWindow.h"
 #import "AppKit/PSOperators.h"
 
-#ifdef __EMSCRIPTEN__
+#ifdef __WASM_EMCC_OBJC
 #import "wasm/wasm-Appkit.h"
 #endif
 
@@ -101,9 +101,9 @@
 		   NSStringFromSize(aSize), (long int) pixelsWide, (long int) pixelsHigh];
     }
 
-  // FIXME: __EMSCRIPTEN__ set a flag here, which can be used in -[WasmCairoDisplayServer window::::] to not create a surface in the host.
+  // TODO: wasm FIXME: __WASM_EMCC_OBJC set a flag here, which can be used in -[WasmCairoDisplayServer window::::] to not create a surface in the host.
 
-#ifdef __EMSCRIPTEN__
+#ifdef __WASM_EMCC_OBJC
   _setCreatingNSWindowForImageCache(YES);
 #endif
 
@@ -113,7 +113,7 @@
 				      backing: NSBackingStoreRetained
 					defer: NO];
 
-#ifdef __EMSCRIPTEN__
+#ifdef __WASM_EMCC_OBJC
   _setCreatingNSWindowForImageCache(NO);
 #endif
  

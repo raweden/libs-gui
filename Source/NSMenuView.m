@@ -244,7 +244,7 @@ static float menuBarHeight = 0.0;
     }
 
   // Clean the pointer to us stored into the _itemCells.
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
   [_itemCells makeObjectsPerformSelector: @selector(setMenuView:)
               withObject: nil];
 #else

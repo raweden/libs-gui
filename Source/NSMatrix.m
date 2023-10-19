@@ -641,14 +641,26 @@ static SEL getSel;
 
   if (_cellPrototype != nil)
     {
+#ifndef __WASM_EMCC_OBJC
       aCell = (*_cellNew)(_cellPrototype, copySel, _myZone);
+#else
+      aCell = [_cellPrototype copyWithZone: _myZone];
+#endif
     }
   else
     {
+#ifndef __WASM_EMCC_OBJC
       aCell = (*_cellNew)(_cellClass, allocSel, _myZone);
+#else
+      aCell = [_cellClass allocWithZone: _myZone];
+#endif
       if (aCell != nil)
 	{
+#ifndef __WASM_EMCC_OBJC
 	  aCell = (*_cellInit)(aCell, initSel);
+#else
+    aCell = [aCell init];
+#endif
 	}
     }
   /*
@@ -872,6 +884,7 @@ static SEL getSel;
 
 - (void) sortUsingSelector: (SEL)comparator
 {
+#ifndef __WASM_EMCC_OBJC
   NSMutableArray *sorted;
   IMP add;
   IMP get;
@@ -898,6 +911,26 @@ static SEL getSel;
 	  _cells[i][j] = (*get)(sorted, @selector(objectAtIndex:), index++);
 	}
     }
+#else
+  NSMutableArray *sorted = [NSMutableArray arrayWithCapacity: _numRows * _numCols];
+  NSInteger i, j, index = 0;
+
+  for (i = 0; i < _numRows; i++) {
+    
+    for (j = 0; j < _numCols; j++) {
+      [sorted addObject: _cells[i][j]];
+    }
+  }
+
+  [sorted sortUsingSelector: comparator];
+
+  for (i = 0; i < _numRows; i++) {
+
+    for (j = 0; j < _numCols; j++) {
+      _cells[i][j] = [sorted objectAtIndex: index++];
+    }
+  }
+#endif
 }
 
 /** <p>Gets the row and the column of the NSMatrix correponding to the 
@@ -1517,14 +1550,20 @@ static SEL getSel;
   NSInteger i;
 
   c = [NSMutableArray arrayWithCapacity: _numRows * _numCols];
+#ifndef __WASM_EMCC_OBJC
   add = [c methodForSelector: @selector(addObject:)];
+#endif
   for (i = 0; i < _numRows; i++)
     {
       NSInteger j;
 
       for (j = 0; j < _numCols; j++)
 	{
+#ifndef __WASM_EMCC_OBJC
 	  (*add)(c, @selector(addObject:), _cells[i][j]);
+#else
+    [c addObject: _cells[i][j]];
+#endif
 	}
     }
   return c;
@@ -3962,7 +4001,7 @@ static SEL getSel;
   NSInteger i, j;
   NSInteger oldMaxC;
   NSInteger oldMaxR;
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
   SEL mkSel = @selector(makeCellAtRow:column:);
   IMP mkImp = [self methodForSelector: mkSel];
 #endif
@@ -4025,7 +4064,7 @@ static SEL getSel;
 		}
 	      else
 		{
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 		  (*mkImp)(self, mkSel, i, j);
 #else
       [self makeCellAtRow: i column: j];
@@ -4061,7 +4100,7 @@ static SEL getSel;
 		    }
 		  else
 		    {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 		      (*mkImp)(self, mkSel, i, j);
 #else
           [self makeCellAtRow: i column: j];
@@ -4075,7 +4114,7 @@ static SEL getSel;
 		{
 		  _cells[i][j] = nil;
 		  _selectedCells[i][j] = NO;
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 		  (*mkImp)(self, mkSel, i, j);
 #else
       [self makeCellAtRow: i column: j];

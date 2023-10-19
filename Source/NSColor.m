@@ -191,18 +191,18 @@ void initSystemColors(void)
 
   // Set up a dictionary containing the names of all the system colors
   // as keys and with colors in string format as values.
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_NOVARG
   white = [NSString stringWithFormat: @"%g %g %g", (double)NSWhite, (double)NSWhite, (double)NSWhite];
   lightGray = [NSString stringWithFormat: @"%g %g %g", (double)NSLightGray, (double)NSLightGray, (double)NSLightGray];
   gray = [NSString stringWithFormat: @"%g %g %g", (double)NSGray, (double)NSGray, (double)NSGray];
   darkGray = [NSString stringWithFormat: @"%g %g %g", (double)NSDarkGray, (double)NSDarkGray, (double)NSDarkGray];
   black = [NSString stringWithFormat: @"%g %g %g", (double)NSBlack, (double)NSBlack, (double)NSBlack];
 #else
-  white = @"1.0 1.0 1.0";
-  lightGray = @"0.667 0.667 0.667";
-  gray = @"0.5 0.5 0.5";
-  darkGray = @"0.333 0.333 0.333";
-  black = @"0.0 0.0 0.0";
+  white = NSStringWithFormat(@"%g %g %g", (double)NSWhite, (double)NSWhite, (double)NSWhite);
+  lightGray = NSStringWithFormat(@"%g %g %g", (double)NSLightGray, (double)NSLightGray, (double)NSLightGray);
+  gray = NSStringWithFormat(@"%g %g %g", (double)NSGray, (double)NSGray, (double)NSGray);
+  darkGray = NSStringWithFormat(@"%g %g %g", (double)NSDarkGray, (double)NSDarkGray, (double)NSDarkGray);
+  black = NSStringWithFormat(@"%g %g %g", (double)NSBlack, (double)NSBlack, (double)NSBlack);
 #endif
   lightYellow = @"1.0 1.0 0.9";
 

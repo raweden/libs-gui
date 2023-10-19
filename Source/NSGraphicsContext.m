@@ -72,7 +72,7 @@ static NSMutableDictionary *classMethodTable;
 static NSRecursiveLock  *contextLock = nil;
 #endif
 
-#ifdef __EMSCRIPTEN__
+#ifdef __WASM_EMCC_OBJC
 static NSGraphicsContext *_gcontext;
 static NSMutableArray *_gstack;
 #endif
@@ -100,7 +100,7 @@ NSString *GSColorSpaceColorTable = @"GSColorSpaceColorTable";
  */
 NSGraphicsContext	*GSCurrentContext(void)
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 #ifdef GNUSTEP_BASE_LIBRARY
   // gstep-base has a faster mechanism to get the current thread.
   NSThread *th = GSCurrentThread();
@@ -180,7 +180,7 @@ NSGraphicsContext	*GSCurrentContext(void)
 /** Set the current context that will handle drawing. */
 + (void) setCurrentContext: (NSGraphicsContext *)context
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 #ifdef GNUSTEP_BASE_LIBRARY
 //	gstep-base has a faster mechanism to get the current thread.
   NSThread *th = GSCurrentThread();
@@ -267,7 +267,7 @@ NSGraphicsContext	*GSCurrentContext(void)
 + (void) restoreGraphicsState
 {
   NSGraphicsContext *ctxt;
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
   NSMutableDictionary *dict = [[NSThread currentThread] threadDictionary];
   NSMutableArray *stack = [dict objectForKey: NSGraphicsContextStackKey];
 
@@ -302,7 +302,7 @@ NSGraphicsContext	*GSCurrentContext(void)
 + (void) saveGraphicsState
 {
   NSGraphicsContext *ctxt;
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
   NSMutableDictionary *dict = [[NSThread currentThread] threadDictionary];
   NSMutableArray *stack = [dict objectForKey: NSGraphicsContextStackKey];
   if (stack == nil)
@@ -568,7 +568,7 @@ NSGraphicsContext	*GSCurrentContext(void)
   gsMethodTable methodTable;
   gsMethodTable *mptr;
 
-//#ifndef __EMSCRIPTEN__
+//#ifndef __WASM_EMCC_OBJC
 #define	GET_IMP(X) ((void*) [self instanceMethodForSelector: (X)])
 //#else
 //#define GET_IMP(X) ((void*) slowMsgLookup(self, (X)));

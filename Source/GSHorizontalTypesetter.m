@@ -81,13 +81,13 @@ cache fairly aggressively without having to worry about memory consumption.
   [super dealloc];
 }
 
-#ifdef __EMSCRIPTEN__
+#ifdef __WASM_EMCC_OBJC
 static GSHorizontalTypesetter *s_globalShared;
 #endif
 
 +(GSHorizontalTypesetter *) sharedInstance
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
   NSMutableDictionary *threadDict = 
     [[NSThread currentThread] threadDictionary];
   GSHorizontalTypesetter *shared = 

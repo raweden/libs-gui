@@ -220,14 +220,17 @@
     {
       // Tiling also marks it as needing redisplay
       [_tableView tile];
-      
-      [[NSNotificationCenter defaultCenter] 
-	postNotificationName: NSTableViewColumnDidResizeNotification
-	object: _tableView
-	userInfo: [NSDictionary dictionaryWithObjectsAndKeys:
-				  self, @"NSTableColumn", 
-				  [NSNumber numberWithFloat: oldWidth],
-				@"NSOldWidth", nil]];
+#ifndef __WASM_NOVARG
+      NSDictionary *info = [NSDictionary dictionaryWithObjectsAndKeys:
+          self, @"NSTableColumn", 
+          [NSNumber numberWithFloat: oldWidth],
+        @"NSOldWidth", nil]
+#else
+      NSDictionary *info = @{@"NSTableColumn": self, @"NSOldWidth": [NSNumber numberWithFloat: oldWidth]};
+#endif
+      [[NSNotificationCenter defaultCenter] postNotificationName: NSTableViewColumnDidResizeNotification
+        object: _tableView
+        userInfo: info];
     }
 }
 

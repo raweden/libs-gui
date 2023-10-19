@@ -908,7 +908,7 @@ static NSNotificationCenter *nc;
       [super mouseDown: theEvent];
       return;
     }
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 
   // Make sure self does not go away during the processing of the event
   RETAIN(self); 
@@ -958,7 +958,7 @@ static NSNotificationCenter *nc;
     [_cell setHighlighted: YES];
     [self setNeedsDisplay: YES];
     fprintf(stderr, "did enter at %s\n", __PRETTY_FUNCTION__);
-#endif // #ifndef __EMSCRIPTEN__
+#endif // #ifndef __WASM_EMCC_OBJC
 }
 
 - (BOOL) shouldBeTreatedAsInkEvent: (NSEvent *)theEvent

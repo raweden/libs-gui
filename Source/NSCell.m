@@ -1662,7 +1662,7 @@ static NSColor *dtxtCol;
              ofView: (NSView*)controlView
        untilMouseUp: (BOOL)flag
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
   NSApplication *theApp = [NSApplication sharedApplication];
   NSUInteger event_mask = NSLeftMouseDownMask | NSLeftMouseUpMask
     | NSMouseMovedMask | NSLeftMouseDraggedMask | NSOtherMouseDraggedMask
@@ -1824,7 +1824,7 @@ static NSColor *dtxtCol;
     }
 #else
     fprintf(stderr, "did enter at %s\n", __PRETTY_FUNCTION__);
-#endif // #ifndef __EMSCRIPTEN__
+#endif // #ifndef __WASM_EMCC_OBJC
 }
 
 - (NSUInteger) hitTestForEvent: (NSEvent*)event
@@ -2960,7 +2960,7 @@ static NSColor *dtxtCol;
   [paragraphStyle setBaseWritingDirection: [self baseWritingDirection]];
   [paragraphStyle setAlignment: [self alignment]];
 
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_NOVARG
   attr = [[NSDictionary alloc] initWithObjectsAndKeys:
                                _font, NSFontAttributeName,
                                color, NSForegroundColorAttributeName,

@@ -345,7 +345,8 @@ unCacheAttributes(NSDictionary *attrs)
 
 static Class	infCls = 0;
 
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
+// TODO: wasm fixme
 static SEL infSel;
 static SEL addSel;
 static SEL cntSel;
@@ -382,7 +383,7 @@ static void _setup()
 
       GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
 
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
       infSel = @selector(newWithZone:value:at:);
       addSel = @selector(addObject:);
       cntSel = @selector(count);
@@ -393,7 +394,7 @@ static void _setup()
 
       infCls = [GSTextInfo class];
 
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
       infImp = [infCls methodForSelector: infSel];
 
       a = [NSMutableArray allocWithZone: NSDefaultMallocZone()];

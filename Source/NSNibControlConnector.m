@@ -37,7 +37,9 @@
 - (void) establishConnection
 {
   SEL sel = NSSelectorFromString(_tag);
-
+#ifdef DEBUG_NIB_LOADING
+  fprintf(stderr, "entered at %s with selector: '%s'\n", __PRETTY_FUNCTION__, sel_getName(sel));
+#endif
   [_src setTarget: _dst];
   [_src setAction: sel];
 }

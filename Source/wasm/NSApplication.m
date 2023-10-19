@@ -89,11 +89,6 @@
 #import "NSDocumentFrameworkPrivate.h"
 #import "NSToolbarFrameworkPrivate.h"
 
-#ifdef __EMSCRIPTEN__
-#import "wasm/bindings.h"
-#import "wasm/wasm-entry.h"
-#endif
-
 // minimize icon when suppressed?
 #define	MINI_ICON	0
 
@@ -866,7 +861,8 @@ static BOOL _isAutolaunchChecked = NO;
 	// Set a new exception handler for the gui library.  
 	NSSetUncaughtExceptionHandler(_NSAppKitUncaughtExceptionHandler);
 
-#ifndef __EMSCRIPTEN__
+	// TODO: WASM FIXME
+#ifndef __WASM_EMCC_OBJC
 	_listener = [GSServicesManager newWithApplication: self];
 #endif
 
@@ -882,7 +878,10 @@ static BOOL _isAutolaunchChecked = NO;
 	// window unless it is the very first window being mapped.
 	[self _appIconInit];
 
+	// TODO: WASM FIXME
+#ifndef __WASM_EMCC_OBJC
 	[_app_init_pool drain];
+#endif
 }
 
 
@@ -967,7 +966,7 @@ static BOOL _isAutolaunchChecked = NO;
 	[nc postNotificationName: NSApplicationWillFinishLaunchingNotification object: self];
 
 	// Register our listener to incoming services requests etc. 
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 	[_listener registerAsServiceProvider];
 #endif
 
@@ -1051,7 +1050,7 @@ static BOOL _isAutolaunchChecked = NO;
 	}
 
 	//Now check to see if we were launched with arguments asking to open a file. We permit some variations on the default name.
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 	if ((files = [self _openFiles]) != nil) {
 		[_listener application: self openFiles: files];
 	}  else if ((filePath = [defs stringForKey: @"GSFilePath"]) != nil || (filePath = [defs stringForKey: @"NSOpen"]) != nil) {
@@ -1124,7 +1123,7 @@ static BOOL _isAutolaunchChecked = NO;
 
 	RELEASE(_hidden);
 	RELEASE(_inactive);
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 	RELEASE(_listener);
 #endif
 	RELEASE(null_event);
@@ -1441,14 +1440,14 @@ void _gstep_fire_runLoop() {
 
 	if (_app_is_launched == NO) {
 		_app_is_launched = YES;
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 		IF_NO_GC(_runLoopPool = [arpClass new]);
 #endif
 
 		[self finishLaunching];
 		[self _didFinishLaunching];
 
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 		[_listener updateServicesMenu];
 #endif
 		[_main_menu update];
@@ -1486,7 +1485,7 @@ void _gstep_fire_runLoop() {
 				[self sendEvent: e];
 
 				// update (en/disable) the services menu's items
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 				if (type != NSPeriodic && type != NSMouseMoved) {
 					[_listener updateServicesMenu];
 					[_main_menu update];
@@ -1788,7 +1787,7 @@ See Also: `-runModalForWindow:`
 
 			// update (en/disable) the services menu's items
 			if (type != NSPeriodic && type != NSMouseMoved) {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 				[_listener updateServicesMenu];
 #endif
 				[_main_menu update];
@@ -2108,7 +2107,7 @@ IF_NO_GC(NSAssert([event retainCount] > 0, NSInternalInconsistencyException));
 
 /**
  * Sends the aSelector message to the receiver returned by the
- * -targetForAction:to:from: method (to which the aTarget and sender
+ * \c -targetForAction:to:from: method (to which the aTarget and sender
  * arguments are passed).<br />
  * The method in the receiver must expect a single argument ...
  * the sender.<br />
@@ -2118,6 +2117,8 @@ IF_NO_GC(NSAssert([event retainCount] > 0, NSInternalInconsistencyException));
  */
 - (BOOL) sendAction: (SEL)aSelector to: (id)aTarget from: (id)sender
 {
+	fprintf(stderr, "%s selector '%s'\n", __PRETTY_FUNCTION__ , sel_getName(aSelector));
+
 	id resp = [self targetForAction: aSelector to: aTarget from: sender];
 
 	if (resp != nil) {
@@ -2125,7 +2126,13 @@ IF_NO_GC(NSAssert([event retainCount] > 0, NSInternalInconsistencyException));
 		IMP actionIMP = [resp methodForSelector: aSelector];
 
 		if (0 != actionIMP) {
+#ifndef __WASM_EMCC_OBJCJC
 			actionIMP(resp, aSelector, sender);
+#else
+			void (*fp)(id, SEL, id);
+			fp = (void(*)(id, SEL, id))actionIMP;
+			fp(resp, aSelector, sender);
+#endif
 			return YES;
 		}
 	}
@@ -2588,7 +2595,6 @@ image.</p><p>See Also: -applicationIconImage</p>
 - (void) setWindowsNeedUpdate: (BOOL)flag
 {
 	_windows_need_update = flag;
-	_wasmHost_enque_display_timing();
 }
 
 /**
@@ -3077,7 +3083,7 @@ image.</p><p>See Also: -applicationIconImage</p>
  */
 - (void) registerServicesMenuSendTypes: (NSArray *)sendTypes returnTypes: (NSArray *)returnTypes
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 	[_listener registerSendTypes: sendTypes returnTypes: returnTypes];
 #endif
 }
@@ -3087,9 +3093,10 @@ image.</p><p>See Also: -applicationIconImage</p>
  */
 - (NSMenu *) servicesMenu
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 	return [_listener servicesMenu];
 #endif
+	return nil;
 }
 
 /**<p> Returns the services provided previously registered using the
@@ -3097,9 +3104,10 @@ image.</p><p>See Also: -applicationIconImage</p>
  */
 - (id) servicesProvider
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 	return [_listener servicesProvider];
 #endif
+	return nil;
 }
 
 /**<p>ets the services menu for the receiver.  This should be called, otherwise
@@ -3109,7 +3117,7 @@ image.</p><p>See Also: -applicationIconImage</p>
  */
 - (void) setServicesMenu: (NSMenu *)aMenu
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 	[_listener setServicesMenu: aMenu];
 #endif
 }
@@ -3122,7 +3130,7 @@ image.</p><p>See Also: -applicationIconImage</p>
  */
 - (void) setServicesProvider: (id)anObject
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 	[_listener setServicesProvider: anObject];
 #endif
 }
@@ -3645,7 +3653,7 @@ struct _DelegateWrapper
 	NSDictionary	*userInfo;
 
 	processIdentifier = [NSNumber numberWithInt: [[NSProcessInfo processInfo] processIdentifier]];
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 	port = [(GSServicesManager*)_listener port];
 #else
 	port = nil;
@@ -3679,7 +3687,7 @@ struct _DelegateWrapper
 
 - (void) _openDocument: (NSString*)filePath
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
 	[_listener application: self openFile: filePath];
 #endif
 }

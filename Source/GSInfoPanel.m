@@ -478,8 +478,11 @@ new_label (NSString *value)
       [copyrightDescriptionLabel sizeToFit];
     }
 
-  theme = [NSString stringWithFormat: @"%@: %@",
-    _(@"Current theme"), [[GSTheme theme] name]];
+#ifndef __WASM_NOVARG
+  theme = [NSString stringWithFormat: @"%@: %@", _(@"Current theme"), [[GSTheme theme] name]];
+#else
+  theme = NSStringWithFormat(@"%@: %@", _(@"Current theme"), [[GSTheme theme] name]);
+#endif
   themeLabel = AUTORELEASE([NSButton new]);
   [themeLabel setTitle: theme];
   [themeLabel setBordered: NO];

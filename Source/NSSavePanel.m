@@ -381,8 +381,12 @@ setPath(NSBrowser *browser, NSString *path)
   [self setInitialFirstResponder: _form];
   [super setTitle: @""];
 
+#ifndef __WASM_NOVARG
   [self registerForDraggedTypes: [NSArray arrayWithObjects:
 	NSFilenamesPboardType, nil]];
+#else
+  [self registerForDraggedTypes: @[NSFilenamesPboardType]];
+#endif
 
   return self;
 }
@@ -1493,9 +1497,22 @@ selectCellWithString: (NSString*)title
   if ([aDelegate respondsToSelector: @selector(panelSelectionDidChange:)])
     _delegateHasSelectionDidChange = YES;
   else 
-    _delegateHasSelectionDidChange = NO;      
+    _delegateHasSelectionDidChange = NO;
 
+#ifndef __WASM_EMCC_OBJC
   [super setDelegate: aDelegate];
+#else
+  // FIXME: Not Sure why the wasm version breaks on certain super calls.. this is a temporary fix.
+  //        this temporary override did not work when using @selector() to get setDelegate: but when
+  //        using _cmd it worked somehow.. might be a issue with registered selector which causes the
+  //        super call to not work within certain impl.
+  //SEL _sel = @selector(setDelegate:);
+  void (*fp)(id, SEL, id);
+  Class cls = objc_getClass("NSPanel");
+  IMP imp = [cls instanceMethodForSelector:_cmd];
+  fp = (void (*)(id, SEL, id))imp;
+  fp(self, _cmd, aDelegate);
+#endif
   [self validateVisibleColumns];
 }
 
@@ -1693,9 +1710,11 @@ createRowsForColumn: (NSInteger)column
   NSString              *progressString = nil;
   NSWorkspace		*ws;
   /* We create lot of objects in this method, so we use a pool */
+#ifndef __WASM_EMCC_OBJC
   NSAutoreleasePool     *pool;
 
   pool = [NSAutoreleasePool new];
+#endif
   ws = [NSWorkspace sharedWorkspace];
   path = pathToColumn(_browser, column);
 #if	defined(__MINGW32__)
@@ -1787,7 +1806,9 @@ createRowsForColumn: (NSInteger)column
   /* If array is empty, just return (nothing to display).  */
   if (count == 0)
     {
+#ifndef __WASM_EMCC_OBJC
       RELEASE (pool);
+#endif
       return;
     }
 
@@ -1899,7 +1920,9 @@ createRowsForColumn: (NSInteger)column
       [self flushWindow];
     }
 
+#ifndef __WASM_EMCC_OBJC
   RELEASE (pool);
+#endif
 }
 
 - (BOOL) browser: (NSBrowser*)sender

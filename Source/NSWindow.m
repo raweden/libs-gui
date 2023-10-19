@@ -705,7 +705,7 @@ static NSSize scaledIconSizeForSize(NSSize imageSize)
 /*
  * Class variables
  */
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC // TODO: WASM FIXME
 static SEL        ccSel;
 static SEL        ctSel;
 static IMP        ccImp;
@@ -726,7 +726,7 @@ static NSNotificationCenter *nc = nil;
   if (self == [NSWindow class])
     {
       [self setVersion: 3];
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
       ccSel = @selector(_checkCursorRectangles:forEvent:);
       ctSel = @selector(_checkTrackingRectangles:forEvent:);
       ccImp = [self instanceMethodForSelector: ccSel];
@@ -1358,17 +1358,14 @@ many times.
 static NSString *
 titleWithRepresentedFilename(NSString *representedFilename)
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_NOVARG
   // FIXME: wasm variadic args.
   return [NSString stringWithFormat: @"%@  --  %@",
 		   [representedFilename lastPathComponent],
 		   [[representedFilename stringByDeletingLastPathComponent]
 		     stringByAbbreviatingWithTildeInPath]];
 #else
-  NSString *title = representedFilename != nil ? [representedFilename lastPathComponent] : @"";
-  title = [title stringByAppendingString: @" -- "];
-  //title = [title stringByAppendingString: [[representedFilename stringByDeletingLastPathComponent] stringByAbbreviatingWithTildeInPath]];
-  return title;
+  return NSStringWithFormat(@"%@  --  %@", [representedFilename lastPathComponent], [[representedFilename stringByDeletingLastPathComponent] stringByAbbreviatingWithTildeInPath]);
 #endif
 }
 
@@ -4047,7 +4044,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
             {
               if (![subs[i] isHidden])
                 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
                   (*ctImp)(self, ctSel, subs[i], theEvent);
 #else
                   [self _checkTrackingRectangles: subs[i] forEvent: theEvent];
@@ -4316,7 +4313,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
          * a tracking rectangle then we need to determine if we should send
          * a NSMouseEntered or NSMouseExited event.
          */
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
         (*ctImp)(self, ctSel, _wv, theEvent);
 #else
         [self _checkTrackingRectangles: _wv forEvent: theEvent];
@@ -4331,7 +4328,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
              */
             if (_f.cursor_rects_enabled)
               {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
                 (*ccImp)(self, ccSel, _wv, theEvent);
 #else
                 [self _checkCursorRectangles: _wv forEvent: theEvent];
@@ -4581,7 +4578,7 @@ checkCursorRectanglesExited(NSView *theView,  NSEvent *theEvent, NSPoint lastPoi
                * We need to go through all of the views, and if there
                * is any with a tracking rectangle then we need to
                * determine if we should send a NSMouseExited event.  */
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
               (*ctImp)(self, ctSel, _wv, theEvent);
 #else
               [self _checkTrackingRectangles: _wv forEvent: theEvent];
@@ -5121,7 +5118,11 @@ current key view.<br />
 
   defs = [NSUserDefaults standardUserDefaults];
   obj = [self stringWithSavedFrame];
+#ifndef __WASM_NOVARG
   key = [NSString stringWithFormat: @"NSWindow Frame %@", name];
+#else
+  key = NSStringWithFormat(@"NSWindow Frame %@", name);
+#endif
   [defs setObject: obj forKey: key];
 }
 
@@ -5324,7 +5325,11 @@ current key view.<br />
   NSString *key;
 
   defs = [NSUserDefaults standardUserDefaults];
+#ifndef __WASM_NOVARG
   key = [NSString stringWithFormat: @"NSWindow Frame %@", name];
+#else
+  key = NSStringWithFormat(@"NSWindow Frame %@", name);
+#endif
   obj = [defs objectForKey: key];
   if (obj == nil)
     {
@@ -5377,13 +5382,20 @@ current key view.<br />
    * the window could be placed (ie a rectangle excluding the dock).
    */
   sRect = [[self screen] visibleFrame];
-  autosaveString = [NSString stringWithFormat: @"%d %d %d %d %d %d % d %d ",
+#ifndef __WASM_NOVARG
+  autosaveString = [NSString stringWithFormat: @"%d %d %d %d %d %d %d %d ",
                                (int)fRect.origin.x, (int)fRect.origin.y,
                                (int)fRect.size.width, (int)fRect.size.height,
                                (int)sRect.origin.x, (int)sRect.origin.y,
                                (int)sRect.size.width, (int)sRect.size.height];
-  NSDebugLLog(@"NSWindow", @"%s:autosaveName: %@ frame string: %@", __PRETTY_FUNCTION__,
-              _autosaveName, autosaveString);
+#else
+  autosaveString = NSStringWithFormat(@"%d %d %d %d %d %d %d %d ",
+                                      (int)fRect.origin.x, (int)fRect.origin.y,
+                                      (int)fRect.size.width, (int)fRect.size.height,
+                                      (int)sRect.origin.x, (int)sRect.origin.y,
+                                      (int)sRect.size.width, (int)sRect.size.height);
+#endif
+  NSDebugLLog(@"NSWindow", @"%s:autosaveName: %@ frame string: %@", __PRETTY_FUNCTION__, _autosaveName, autosaveString);
 
   return autosaveString;
 }

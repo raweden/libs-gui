@@ -44,14 +44,34 @@
           NSString *selName;
           SEL sel;
 
+#ifndef __WASM_NOVARG
           selName = [NSString stringWithFormat: @"set%@%@:",
                        [[_tag substringToIndex: 1] uppercaseString],
                       [_tag substringFromIndex: 1]];
+#else
+          selName = NSStringWithFormat(@"set%@%@:",
+                       [[_tag substringToIndex: 1] uppercaseString],
+                      [_tag substringFromIndex: 1]);
+#endif
           sel = NSSelectorFromString(selName);
+
+#ifdef DEBUG_NIB_LOADING
+          fprintf(stderr, "entered at %s connecting '%s'\n", __PRETTY_FUNCTION__, sel_getName(sel));
+#endif
 
           if (sel && [_src respondsToSelector: sel])
             {
+#ifdef DEBUG_NIB_LOADING
+              fprintf(stderr, "trying to invoke '%s'\n", [selName cString]);
+#endif
+
+#ifndef __WASM_EMCC_OBJC
               [_src performSelector: sel withObject: _dst];
+#else
+              void(*fp)(id, SEL, id);
+              fp = (void(*)(id, SEL, id))[_src methodForSelector: sel];
+              fp(_src, sel, _dst);
+#endif
             }
           else
             {

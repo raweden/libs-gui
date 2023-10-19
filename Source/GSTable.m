@@ -746,7 +746,7 @@
 -(void) encodeWithCoder: (NSCoder*)aCoder
 {
 
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
   // TODO: FIXME emscripten
   int i;
   

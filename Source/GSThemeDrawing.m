@@ -1896,7 +1896,6 @@ static NSDictionary *titleTextAttributes[3] = {nil, nil, nil};
 	}
   
       titleSize = [title sizeWithAttributes: titleTextAttributes[inputState]];
-      fprintf(stderr, "titleSize in %s computed to {%f, %f}\n", __PRETTY_FUNCTION__, titleSize.width, titleSize.height);
       if (titleSize.width <= workRect.size.width)
 	workRect.origin.x = NSMidX(workRect) - titleSize.width / 2;
       workRect.origin.y = NSMidY(workRect) - titleSize.height / 2;

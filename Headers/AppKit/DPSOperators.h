@@ -880,7 +880,7 @@ DPSsetstrokeadjust(GSCTXT *ctxt, int b)
 static inline void
 DPSconcat(GSCTXT *ctxt, const CGFloat* m)
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
   (ctxt->methods->DPSconcat_)
     (ctxt, @selector(DPSconcat:), m);
 #else

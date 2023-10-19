@@ -351,7 +351,8 @@ static id GSLaunched(NSNotification *notification, BOOL active)
   [super dealloc];
 }
 
-#ifdef __EMSCRIPTEN__
+// TODO: WASM FIXME
+#ifdef __WASM_EMCC_OBJC
 static NSNotificationCenter *s_workspaceNC;
 #endif
 
@@ -359,7 +360,7 @@ static NSNotificationCenter *s_workspaceNC;
 {
   self = [super init];
   if (self != nil) {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
       remote = RETAIN([NSDistributedNotificationCenter defaultCenter]);
       NS_DURING
 	{
@@ -406,7 +407,8 @@ static NSNotificationCenter *s_workspaceNC;
   NSString		*name = [aNotification name];
   NSDictionary		*info = [aNotification userInfo];
 
-#ifndef __EMSCRIPTEN__
+  // TODO: WASM FIXME
+#ifndef __WASM_EMCC_OBJC
   if ([name isEqual: NSWorkspaceDidTerminateApplicationNotification] == YES
     || [name isEqual: NSWorkspaceDidLaunchApplicationNotification] == YES
     || [name isEqualToString: NSApplicationDidBecomeActiveNotification] == YES
@@ -807,7 +809,8 @@ static NSDictionary		*urlPreferences = nil;
   // icon association and caching
   folderPathIconDict = [[NSMutableDictionary alloc] initWithCapacity:5];
 
-#ifndef __EMSCRIPTEN__
+  // TODO: WASM FIXME
+#ifndef __WASM_EMCC_OBJC
   documentDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
   downloadDir = NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, YES);
   desktopDir = NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, YES);
@@ -1756,7 +1759,8 @@ inFileViewerRootedAtPath: (NSString*)rootFullpath
  */
 - (void) findApplications
 {
-#ifndef __EMSCRIPTEN__
+    // TODO: WASM FIXME
+#ifndef __WASM_EMCC_OBJC
   static NSString	*path = nil;
   NSTask		*task;
 
@@ -1908,7 +1912,7 @@ launchIdentifiers: (NSArray **)identifiers
  */
 - (NSDictionary*) activeApplication
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
   id	app;
 
   NS_DURING
@@ -1940,7 +1944,7 @@ launchIdentifiers: (NSArray **)identifiers
 {
   NSArray       *apps = nil;
 
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
   NS_DURING
     {
       id	app;
@@ -2180,6 +2184,7 @@ launchIdentifiers: (NSArray **)identifiers
   reservedMountNames = [[NSUserDefaults standardUserDefaults] objectForKey: @"GSReservedMountNames"];
   if (reservedMountNames == nil)
     {
+#ifndef __WASM_NOVARG
       reservedMountNames = [NSArray arrayWithObjects:
 				      @"proc",@"devpts",
 				    @"shm",@"usbdevfs",
@@ -2187,8 +2192,10 @@ launchIdentifiers: (NSArray **)identifiers
 				    @"tmpfs",@"procbususb",
 				    @"udev", @"pstore",
 				    @"cgroup", nil];
-      [[NSUserDefaults standardUserDefaults] setObject: reservedMountNames 
-						forKey: @"GSReservedMountNames"];
+#else
+      reservedMountNames = @[@"proc", @"devpts", @"shm", @"usbdevfs", @"devtmpfs", @"devpts",@"sysfs", @"tmpfs", @"procbususb", @"udev", @"pstore", @"cgroup"];
+#endif
+      [[NSUserDefaults standardUserDefaults] setObject: reservedMountNames forKey: @"GSReservedMountNames"];
     }
 
 #if	defined(__MINGW32__)
@@ -2271,6 +2278,9 @@ launchIdentifiers: (NSArray **)identifiers
 	}
     }
   endmntent(fptr);
+#elif defined(__WASM_EMCC_OBJC)
+  // TODO: in certain enviroments mounted devices might be accessable, but not in default browser enviroment.
+  names = [NSMutableArray arrayWithCapacity: 1];
 #else
   /* we resort in parsing mtab manually and removing then reserved mount names
      defined in preferences GSReservedMountNames (SystemPreferences) */

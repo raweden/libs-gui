@@ -434,7 +434,9 @@ static NSImage *_pbc_image[5];
   // Or
   [anItem setAction: @selector(_popUpItemAction:)];
   [anItem setTarget: self];
-  
+#ifdef __WASM
+  fprintf(stderr, "item inserted in menu, current count: %ld\n", [_menu numberOfItems]);
+#endif  
   // Select the new item if there isn't any selection.
   if (_selectedItem == nil)
     {
@@ -906,7 +908,7 @@ static NSImage *_pbc_image[5];
   NSRectEdge            preferredEdge = _pbcFlags.preferredEdge;
   NSNotificationCenter  *nc = [NSNotificationCenter defaultCenter];
   NSWindow              *cvWin = [controlView window];
-  NSMenuView            *mr = [_menu menuRepresentation];
+  NSMenuView            *mr = [[self menu] menuRepresentation];
   NSInteger                   selectedItem;
 
   [nc postNotificationName: NSPopUpButtonCellWillPopUpNotification
@@ -1013,7 +1015,10 @@ static NSImage *_pbc_image[5];
       NSBeep ();
       return NO;
     }
-
+#ifdef __WASM
+  fprintf(stderr, "menu ptr: %p menu representation's menu %p\n", [self menu], [[[self menu] menuRepresentation] menu]);
+  fprintf(stderr, " pop-up menu first-title: '%s'\n", [[[[self menu] itemAtIndex: 0] title] UTF8String]);
+#endif
   // Attach the popUp
   [self attachPopUpWithFrame: cellFrame
                       inView: controlView];

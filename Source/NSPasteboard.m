@@ -604,10 +604,10 @@ static NSString	*namePrefix = @"NSTypedFilenamesPboardType:";
 
 - (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
 {
-  if (class_respondsToSelector(object_getClass(self), aSelector))
-    {
-      return [super methodSignatureForSelector: aSelector];
-    }
+  if (class_respondsToSelector(object_getClass(self), aSelector)) {
+    return [super methodSignatureForSelector: aSelector];
+  }
+  
   return [target methodSignatureForSelector: aSelector];
 }
 

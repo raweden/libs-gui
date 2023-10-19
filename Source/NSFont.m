@@ -810,9 +810,13 @@ static void setNSFont(NSString *key, NSFont *font)
   else if ([fontName hasPrefix: @"Helvetica-"] &&
        ![font_roles[RoleSystemFont].defaultFont isEqualToString: @"Helvetica"])
     {
+#ifndef __WASM_NOVARG
       return [NSString stringWithFormat: @"%@-%@",
                        font_roles[RoleSystemFont].defaultFont,
                        [fontName substringFromIndex: 10]];
+#else
+      return NSStringWithFormat(@"%@-%@", font_roles[RoleSystemFont].defaultFont, [fontName substringFromIndex: 10]);
+#endif
     }
   return nil;
 }

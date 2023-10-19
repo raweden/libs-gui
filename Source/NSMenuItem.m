@@ -147,9 +147,11 @@ static Class imageClass;
   _state = NSOffState;
   _enabled = YES;
   //_image = nil;
+#ifndef __WASM_EMCC_OBJC
   // Set the images according to the spec. On: check mark; off: dash.
   [self setOnStateImage: [imageClass imageNamed: @"NSMenuCheckmark"]];
   [self setMixedStateImage: [imageClass imageNamed: @"NSMenuMixedState"]];
+#endif
   //_offStateImage = nil;
   //_target = nil;
   _action = aSelector;

@@ -92,7 +92,7 @@ static NSString	*defaultTitle = @" ";
  |                       s    |                                             |
  |                       s    |                                             |
  |    ...................s....|.........................................    |
- |    : Message           s                    s                        ;    |
+ |    : Message          s                    s                        ;    |
  |    :                  s                    s                        :    |
  |    :                  s                    s                        :    |
  |----:                  s                    s                        :----|
@@ -807,9 +807,7 @@ setKeyEquivalent(NSButton *button)
 	  [self sizePanelToFit];
 	}
       [NSApp runModalForWindow: self];
-#ifndef __EMSCRIPTEN__
       [self orderOut: self];
-#endif
     }
   return result;
 }
@@ -858,12 +856,12 @@ setKeyEquivalent(NSButton *button)
 }
 
 - (void) setTitleBar: (NSString*)titleBar
-		icon: (NSImage*)icon
-	       title: (NSString*)title
-	     message: (NSString*)message
-		 def: (NSString*)defaultButton
-		 alt: (NSString*)alternateButton
-	       other: (NSString*)otherButton
+		            icon: (NSImage*)icon
+	             title: (NSString*)title
+	           message: (NSString*)message
+		             def: (NSString*)defaultButton
+		             alt: (NSString*)alternateButton
+	             other: (NSString*)otherButton
 {
   NSView *content = [self contentView];
 
@@ -1311,15 +1309,8 @@ setKeyEquivalent(NSButton *button)
 }
 @end
 
-static GSAlertPanel*
-getSomePanel(
-  GSAlertPanel **instance,
-  NSString *defaultTitle,
-  NSString *title,
-  NSString *message,
-  NSString *defaultButton,
-  NSString *alternateButton,
-  NSString *otherButton)
+static GSAlertPanel *
+getSomePanel(GSAlertPanel **instance, NSString *defaultTitle, NSString *title, NSString *message, NSString *defaultButton, NSString *alternateButton, NSString *otherButton)
 {
   GSAlertPanel	*panel;
 
@@ -1327,9 +1318,7 @@ getSomePanel(
     {
       _GSAlertCreation	*c;
 
-      NSWarnFLog(@"Alert Panel functionality called from a thread other than"
-        @" the main one, this may not work on MacOS-X and could therefore be"
-	@" a portability problem in your code");
+      NSWarnFLog(@"Alert Panel functionality called from a thread other than the main one, this may not work on MacOS-X and could therefore be a portability problem in your code");
       c = [_GSAlertCreation alloc];
       c = [c initWithInstance: instance
 		 defaultTitle: defaultTitle
@@ -1374,15 +1363,8 @@ getSomePanel(
   return panel;
 }
 
-static GSAlertPanel*
-getSomeSheet(
-  GSAlertPanel **instance,
-  NSString *defaultTitle,
-  NSString *title,
-  NSString *message,
-  NSString *defaultButton,
-  NSString *alternateButton,
-  NSString *otherButton)
+static GSAlertPanel *
+getSomeSheet(GSAlertPanel **instance, NSString *defaultTitle, NSString *title, NSString *message, NSString *defaultButton, NSString *alternateButton, NSString *otherButton)
 {
   GSAlertSheet	*panel;
 
@@ -1390,9 +1372,7 @@ getSomeSheet(
     {
       _GSAlertCreation	*c;
 
-      NSWarnFLog(@"Alert Sheet functionality called from a thread other than"
-        @" the main one, this may not work on MacOS-X and could therefore be"
-	@" a portability problem in your code");
+      NSWarnFLog(@"Alert Sheet functionality called from a thread other than the main one, this may not work on MacOS-X and could therefore be a portability problem in your code");
       c = [_GSAlertCreation alloc];
       c = [c initWithInstance: instance
 		 defaultTitle: defaultTitle
@@ -1438,12 +1418,7 @@ getSomeSheet(
 }
 
 id
-NSGetAlertPanel(
-  NSString *title,
-  NSString *msg,
-  NSString *defaultButton,
-  NSString *alternateButton,
-  NSString *otherButton, ...)
+NSGetAlertPanel(NSString *title, NSString *msg, NSString *defaultButton, NSString *alternateButton, NSString *otherButton, ...)
 {
   va_list	ap;
   NSString	*message;
@@ -1457,12 +1432,7 @@ NSGetAlertPanel(
 }
 
 NSInteger
-NSRunAlertPanel(
-  NSString *title,
-  NSString *msg,
-  NSString *defaultButton,
-  NSString *alternateButton,
-  NSString *otherButton, ...)
+NSRunAlertPanel(NSString *title, NSString *msg, NSString *defaultButton, NSString *alternateButton, NSString *otherButton, ...)
 {
   va_list	ap;
   NSString	*message;
@@ -1492,13 +1462,7 @@ NSRunAlertPanel(
 }
 
 NSInteger
-NSRunLocalizedAlertPanel(
-  NSString *table,
-  NSString *title,
-  NSString *msg,
-  NSString *defaultButton,
-  NSString *alternateButton,
-  NSString *otherButton, ...)
+NSRunLocalizedAlertPanel(NSString *table, NSString *title, NSString *msg, NSString *defaultButton, NSString *alternateButton, NSString *otherButton, ...)
 {
   va_list	ap;
   NSString	*message;
@@ -1541,12 +1505,7 @@ NSRunLocalizedAlertPanel(
 
 
 id
-NSGetCriticalAlertPanel(
-  NSString *title,
-  NSString *msg,
-  NSString *defaultButton,
-  NSString *alternateButton,
-  NSString *otherButton, ...)
+NSGetCriticalAlertPanel(NSString *title, NSString *msg, NSString *defaultButton, NSString *alternateButton, NSString *otherButton, ...)
 {
   va_list	ap;
   NSString	*message;
@@ -1560,12 +1519,7 @@ NSGetCriticalAlertPanel(
 }
 
 NSInteger
-NSRunCriticalAlertPanel(
-  NSString *title,
-  NSString *msg,
-  NSString *defaultButton,
-  NSString *alternateButton,
-  NSString *otherButton, ...)
+NSRunCriticalAlertPanel(NSString *title, NSString *msg, NSString *defaultButton, NSString *alternateButton, NSString *otherButton, ...)
 {
   va_list	ap;
   NSString	*message;
@@ -1585,12 +1539,7 @@ NSRunCriticalAlertPanel(
 
 
 id
-NSGetInformationalAlertPanel(
-  NSString *title,
-  NSString *msg,
-  NSString *defaultButton,
-  NSString *alternateButton,
-  NSString *otherButton, ...)
+NSGetInformationalAlertPanel(NSString *title, NSString *msg, NSString *defaultButton, NSString *alternateButton, NSString *otherButton, ...)
 {
   va_list	ap;
   NSString	*message;
@@ -1605,12 +1554,7 @@ NSGetInformationalAlertPanel(
 
 
 NSInteger
-NSRunInformationalAlertPanel(
-  NSString *title,
-  NSString *msg,
-  NSString *defaultButton,
-  NSString *alternateButton,
-  NSString *otherButton, ...)
+NSRunInformationalAlertPanel(NSString *title, NSString *msg, NSString *defaultButton, NSString *alternateButton, NSString *otherButton, ...)
 {
   va_list       ap;
   NSString	*message;
@@ -1633,27 +1577,16 @@ NSRunInformationalAlertPanel(
 void
 NSReleaseAlertPanel(id panel)
 {
-  if ((panel != standardAlertPanel)
-    && (panel != informationalAlertPanel)
-    && (panel != criticalAlertPanel))
-    {
-      RELEASE(panel);
-    }
+  if ((panel != standardAlertPanel) && (panel != informationalAlertPanel) && (panel != criticalAlertPanel)) {
+    RELEASE(panel);
+  }
 }
 
 //
 // New alert interface of Mac OS X
 //
-void NSBeginAlertSheet(NSString *title, 
-		       NSString *defaultButton, 
-		       NSString *alternateButton, 
-		       NSString *otherButton, 
-		       NSWindow *docWindow, 
-		       id modalDelegate, 
-		       SEL didEndSelector, 
-		       SEL didDismissSelector, 
-		       void *contextInfo, 
-		       NSString *msg, ...)
+void
+NSBeginAlertSheet(NSString *title, NSString *defaultButton, NSString *alternateButton, NSString *otherButton, NSWindow *docWindow, id modalDelegate, SEL didEndSelector, SEL didDismissSelector, void *contextInfo, NSString *msg, ...)
 {
   va_list	ap;
   NSString	*message;
@@ -1689,16 +1622,8 @@ void NSBeginAlertSheet(NSString *title,
   NSReleaseAlertPanel(panel);
 }
 
-void NSBeginCriticalAlertSheet(NSString *title, 
-			       NSString *defaultButton, 
-			       NSString *alternateButton, 
-			       NSString *otherButton, 
-			       NSWindow *docWindow, 
-			       id modalDelegate, 
-			       SEL didEndSelector, 
-			       SEL didDismissSelector, 
-			       void *contextInfo, 
-			       NSString *msg, ...)
+void
+NSBeginCriticalAlertSheet(NSString *title, NSString *defaultButton, NSString *alternateButton, NSString *otherButton, NSWindow *docWindow, id modalDelegate, SEL didEndSelector, SEL didDismissSelector, void *contextInfo, NSString *msg, ...)
 {
   va_list	ap;
   NSString	*message;
@@ -1728,16 +1653,8 @@ void NSBeginCriticalAlertSheet(NSString *title,
   NSReleaseAlertPanel(panel);
 }
 
-void NSBeginInformationalAlertSheet(NSString *title, 
-				    NSString *defaultButton, 
-				    NSString *alternateButton, 
-				    NSString *otherButton,
-				    NSWindow *docWindow, 
-				    id modalDelegate, 
-				    SEL didEndSelector, 
-				    SEL didDismissSelector, 
-				    void *contextInfo, 
-				    NSString *msg, ...)
+void
+NSBeginInformationalAlertSheet(NSString *title, NSString *defaultButton, NSString *alternateButton, NSString *otherButton, NSWindow *docWindow, id modalDelegate, SEL didEndSelector, SEL didDismissSelector, void *contextInfo, NSString *msg, ...)
 {
   va_list       ap;
   NSString	*message;
@@ -1804,11 +1721,7 @@ void NSBeginInformationalAlertSheet(NSString *title,
                informativeTextWithFormat: [error localizedRecoverySuggestion]];
 }
 
-+ (NSAlert *) alertWithMessageText: (NSString *)messageTitle
-		     defaultButton: (NSString *)defaultButtonTitle
-		   alternateButton: (NSString *)alternateButtonTitle
-		       otherButton: (NSString *)otherButtonTitle
-	 informativeTextWithFormat: (NSString *)format, ...
++ (NSAlert *) alertWithMessageText: (NSString *)messageTitle defaultButton: (NSString *)defaultButtonTitle alternateButton: (NSString *)alternateButtonTitle otherButton: (NSString *)otherButtonTitle informativeTextWithFormat: (NSString *)format, ...
 {
   va_list ap;
   NSAlert *alert = [[self alloc] init];
@@ -2032,10 +1945,7 @@ void NSBeginInformationalAlertSheet(NSString *title,
     }
 }
 
-- (void) beginSheetModalForWindow: (NSWindow *)window
-		    modalDelegate: (id)delegate
-		   didEndSelector: (SEL)didEndSelector
-		      contextInfo: (void *)contextInfo
+- (void) beginSheetModalForWindow: (NSWindow *)window modalDelegate: (id)delegate didEndSelector: (SEL)didEndSelector contextInfo: (void *)contextInfo
 {
   [self _setupPanel];
   _modalDelegate = delegate;
@@ -2048,15 +1958,12 @@ void NSBeginInformationalAlertSheet(NSString *title,
   DESTROY(_window);
 }
 
-- (void) _alertDidEnd: (NSWindow *)sheet
-           returnCode: (NSInteger)returnCode
-	  contextInfo: (void *)contextInfo
+- (void) _alertDidEnd: (NSWindow *)sheet returnCode: (NSInteger)returnCode contextInfo: (void *)contextInfo
 {
   if ([_modalDelegate respondsToSelector: _didEndSelector])
     {
       void (*didEnd)(id, SEL, id, NSInteger, void *);
-      didEnd = (void (*)(id, SEL, id, NSInteger, void *))[_modalDelegate
-	methodForSelector: _didEndSelector];
+      didEnd = (void (*)(id, SEL, id, NSInteger, void *))[_modalDelegate methodForSelector: _didEndSelector];
       didEnd(_modalDelegate, _didEndSelector, self, returnCode, contextInfo);
     }
 }
@@ -2089,9 +1996,11 @@ NSInteger GSRunExceptionPanel(
   GSExceptionPanel  *panel;
   NSInteger      result;
 
-  message = [NSString stringWithFormat: @"%@: %@",
-	  			[exception name],
-				[exception reason]];
+#ifndef __WASM_NOVARG
+  message = [NSString stringWithFormat: @"%@: %@", [exception name], [exception reason]];
+#else
+  message = NSStringWithFormat(@"%@: %@", [exception name], [exception reason]);
+#endif
   if (defaultButton == nil)
     {
       defaultButton = @"OK";
@@ -2181,8 +2090,7 @@ NSInteger GSRunExceptionPanel(
   [_userInfoPanel makeKeyAndOrderFront: self];
 }
 
-- (NSInteger) browser: (id)browser
-numberOfRowsInColumn: (NSInteger)col
+- (NSInteger) browser: (id)browser numberOfRowsInColumn: (NSInteger)col
 {
   if (col == 0)
     return [[_userInfo allKeys] count];
@@ -2208,10 +2116,7 @@ numberOfRowsInColumn: (NSInteger)col
   return 0;
 }
 
-- (void) browser: (NSBrowser *)browser
-  willDisplayCell: (NSBrowserCell *)cell
-  atRow: (NSInteger)row
-  column: (NSInteger)column
+- (void) browser: (NSBrowser *)browser willDisplayCell: (NSBrowserCell *)cell atRow: (NSInteger)row column: (NSInteger)column
 {
   if (column == 0)
     {

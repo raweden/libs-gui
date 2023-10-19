@@ -2429,7 +2429,7 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
           SEL setPSel = @selector(setPixel:atX:y:);
           IMP getP = [self methodForSelector: getPSel];
           IMP setP = [new methodForSelector: setPSel];
-#ifdef __EMSCRIPTEN__
+#ifdef __WASM_EMCC_OBJC
           void (*get_pixel_fp)(id, SEL, NSUInteger[], NSInteger, NSInteger);
           get_pixel_fp = getP;
           void (*set_pixel_fp)(id, SEL, NSUInteger[], NSInteger, NSInteger);
@@ -2462,7 +2462,7 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                   NSInteger i;
 
                  //[self getPixel: pixelData atX: x y: y];
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
                   getP(self, getPSel, pixelData, x, y)
 #else
                   get_pixel_fp(self, getPSel, pixelData, x, y);
@@ -2565,7 +2565,7 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                     }
 
                   //[new setPixel: pixelData atX: x y: y];
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
                   setP(new, setPSel, pixelData, x, y);
 #else
                   set_pixel_fp(new, setPSel, pixelData, x, y);
@@ -2584,7 +2584,7 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
           SEL setPSel = @selector(setPixel:atX:y:);
           IMP getP = [self methodForSelector: getPSel];
           IMP setP = [new methodForSelector: setPSel];
-#ifdef __EMSCRIPTEN__
+#ifdef __WASM_EMCC_OBJC
           void (*get_pixel_fp)(id, SEL, NSUInteger[], NSInteger, NSInteger);
           get_pixel_fp = getP;
           void (*set_pixel_fp)(id, SEL, NSUInteger[], NSInteger, NSInteger);
@@ -2619,7 +2619,7 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                   CGFloat fv, fa;
 
                  //[self getPixel: pixelData atX: x y: y];
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
                   getP(self, getPSel, pixelData, x, y);
 #else
                   get_pixel_fp(self, getPSel, pixelData, x, y);
@@ -2705,7 +2705,7 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                     }
 
                   //[new setPixel: pixelData atX: x y: y];
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
                   setP(new, setPSel, pixelData, x, y);
 #else
                   set_pixel_fp(new, setPSel, pixelData, x, y);
@@ -2719,7 +2719,7 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
           SEL setCSel = @selector(setColor:atX:y:);
           IMP getC = [self methodForSelector: getCSel];
           IMP setC = [new methodForSelector: setCSel];
-#ifdef __EMSCRIPTEN__
+#ifdef __WASM_EMCC_OBJC
           id (*get_color_fp)(id, SEL, NSInteger, NSInteger);
           get_color_fp = getC;
           void (*set_color_fp)(id, SEL, id, NSInteger, NSInteger);
@@ -2737,7 +2737,7 @@ _set_bit_value(unsigned char *base, long msb_off, int bit_width,
                 {
                   NSColor *c;
                   
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
                   //c = [self colorAtX: i y: j];
                   c = getC(self, getCSel, i, j);
                   //[new setColor: c atX: i y: j];

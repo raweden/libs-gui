@@ -443,19 +443,26 @@ static float	buttonsOffset = 1.0; // buttonsWidth = sw - 2*buttonsOffset
     {
       scrollerKnobOvershoot = 0.0;
     }
-
-  upCell
-    = [theme cellForScrollerArrow: NSScrollerDecrementArrow horizontal:NO];
-  downCell
-    = [theme cellForScrollerArrow: NSScrollerIncrementArrow horizontal:NO];
-  leftCell
-    = [theme cellForScrollerArrow: NSScrollerDecrementArrow horizontal:YES];
-  rightCell
-    = [theme cellForScrollerArrow: NSScrollerIncrementArrow horizontal:YES];
+  upCell  = [theme cellForScrollerArrow: NSScrollerDecrementArrow horizontal:NO];
+  downCell = [theme cellForScrollerArrow: NSScrollerIncrementArrow horizontal:NO];
+  leftCell = [theme cellForScrollerArrow: NSScrollerDecrementArrow horizontal:YES];
+  rightCell = [theme cellForScrollerArrow: NSScrollerIncrementArrow horizontal:YES];
   verticalKnobCell = [theme cellForScrollerKnob: NO];
   horizontalKnobCell = [theme cellForScrollerKnob: YES];
   verticalKnobSlotCell = [theme cellForScrollerKnobSlot: NO];
   horizontalKnobSlotCell = [theme cellForScrollerKnobSlot: YES];
+
+  // WASM: FIXME
+#ifdef __WASM_EMCC_OBJC
+  RETAIN(upCell);
+  RETAIN(downCell);
+  RETAIN(leftCell);
+  RETAIN(rightCell);
+  RETAIN(verticalKnobCell);
+  RETAIN(horizontalKnobCell);
+  RETAIN(verticalKnobSlotCell);
+  RETAIN(horizontalKnobSlotCell);
+#endif
 
   [downCell setContinuous: YES];
   [downCell sendActionOn: (NSLeftMouseDownMask | NSPeriodicMask)];
@@ -475,7 +482,7 @@ static float	buttonsOffset = 1.0; // buttonsWidth = sw - 2*buttonsOffset
 }         
           
 - (void) _setTargetAndActionToCells
-{
+{ 
   [upCell setTarget: _target];
   [upCell setAction: _action];
 
@@ -484,15 +491,17 @@ static float	buttonsOffset = 1.0; // buttonsWidth = sw - 2*buttonsOffset
 
   [leftCell setTarget: _target];
   [leftCell setAction: _action];
+  
 
   [rightCell setTarget: _target];
   [rightCell setAction: _action];
 
+
+  [verticalKnobCell setTarget: _target];
+  [verticalKnobCell setAction: _action];
+
   [horizontalKnobCell setTarget: _target];
   [horizontalKnobCell setAction: _action];
-  
-  [verticalKnobCell setTarget:_target];
-  [horizontalKnobCell setTarget:_target];
 }
 
 - (void) checkSpaceForParts
@@ -824,8 +833,7 @@ static float	buttonsOffset = 1.0; // buttonsWidth = sw - 2*buttonsOffset
 					   fromView: nil]];
 	  if (doubleValue != _doubleValue)
 	    {
-	      const BOOL scrollsToPoint =
-		![[GSTheme theme] scrollerScrollsByPageForScroller: self];
+	      const BOOL scrollsToPoint = ![[GSTheme theme] scrollerScrollsByPageForScroller: self];
 
 	      if (scrollsToPoint)
 		{

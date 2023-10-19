@@ -622,7 +622,8 @@ static BOOL did_register_for_services;
 +(void) registerForServices
 {
   did_register_for_services = YES;
-#ifndef __EMSCRIPTEN__
+  // TODO: WASM FIXME
+#ifndef __WASM_EMCC_OBJC
   NSArray *types = [NSArray arrayWithObjects: NSStringPboardType,
 		    NSRTFPboardType, NSRTFDPboardType, nil];
 
@@ -2125,7 +2126,7 @@ here. */
 
 - (NSArray *) validAttributesForMarkedText
 {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_NOVARG
   return [NSArray arrayWithObjects: NSBackgroundColorAttributeName, 
             NSForegroundColorAttributeName, NSFontAttributeName, nil];
 #else
@@ -2177,7 +2178,7 @@ chain if we can't handle it. */
     }
   if ([self respondsToSelector: aSelector])
     {
-#ifndef __EMSCRIPTEN__
+#ifndef __WASM_EMCC_OBJC
       [self performSelector: aSelector withObject: nil];
 #else 
 
@@ -3818,7 +3819,8 @@ afterString in order over charRange.
 	  the pasteboard server. should do this "later"
 	  */
 	  // Store the selected text in the selection pasteboard
-#ifndef __EMSCRIPTEN__ 
+#ifndef __WASM_EMCC_OBJC
+    // TODO: WASM FIXME
 	  [self copySelection];
 #endif
 
@@ -5693,7 +5695,8 @@ other than copy/paste or dragging. */
   }
   
   /* Enter modal loop tracking the mouse */
-#ifndef __EMSCRIPTEN__
+  // TODO: WASM FIXME
+#ifndef __WASM_EMCC_OBJC
   {
     // TODO: for WebAssembly this implementation conditioned out needs to be changed
     //       as we cannot spin-up a while loop waiting for a mouse-up to arrive.
